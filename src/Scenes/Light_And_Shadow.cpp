@@ -20,7 +20,14 @@ Light_And_Shadow::Light_And_Shadow(Input_Handler* i)
 	shader.push_back(new Shader("src/Shaders/Light_And_Shadow/VertexLight.vs", "src/Shaders/Light_And_Shadow/FragmentLight.fs"));
 	shader.push_back(new Shader("src/Shaders/Light_And_Shadow/VertexShader.vs","src/Shaders/Light_And_Shadow/FragmentShader_Light_Affected.fs"));
 
+	//for normal mapping
+	shader.push_back(new Shader("src/Shaders/Light_And_Shadow/smartVertex.vs","src/Shaders/Light_And_Shadow/smartFragment.fs"));
+
 	shader[2]->Use();
+	glUniform1i(glGetUniformLocation(shader[2]->Program, "ourTexture"), 0);
+	glUniform1i(glGetUniformLocation(shader[2]->Program, "depthMap"), 1);
+
+	shader[3]->Use();
 	glUniform1i(glGetUniformLocation(shader[2]->Program, "ourTexture"), 0);
 	glUniform1i(glGetUniformLocation(shader[2]->Program, "depthMap"), 1);
 
@@ -28,6 +35,7 @@ Light_And_Shadow::Light_And_Shadow(Input_Handler* i)
 	texture.push_back(new Texture("images/crackedsoil.jpg"));
 	texture.push_back(new Texture("images/wood.jpg"));
 	texture.push_back(new Texture("images/grass.jpg"));
+	texture.push_back(new Texture("images/crackedsoil_nm.jpg"));
 
 	//objects
 	shape.push_back(new Cube(shader[2], glm::vec3(0,20,0), 5, 5, 5));
@@ -36,6 +44,10 @@ Light_And_Shadow::Light_And_Shadow(Input_Handler* i)
 	shape.push_back(new Cube(shader[2], glm::vec3(-50,0,0), 0.4f, 50, 100));
 	shape.push_back(new Cube(shader[2], glm::vec3(13,10,0), 2, 10, 2));
 	shape.push_back(new Cube(shader[2], glm::vec3(-5,10,5), 5, 2, 2));
+
+	//testcube for normal mapping
+	test = new Cube(shader[3], glm::vec3(0, 50, 10), glm::vec3(-0.5f, 0.5f, 0.5f));
+	test->texture = texture[0];
 
 	//lights
 	light.push_back(new Light(shader[1], glm::vec3(6, 5.5, 5)));
@@ -78,12 +90,27 @@ void Light_And_Shadow::render() {
 		cam.model_translation(s->getPosition());
 		cam.apply_to(s->shader);
 		light[0]->apply_to(s->shader);
+
 		glActiveTexture(GL_TEXTURE0);
 		s->texture->use();
+
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, light[0]->getDepthCubeMap());
+
 		s->draw();
 	}
+
+	cam.model_translation(test->getPosition());
+	cam.apply_to(test->shader);
+	light[0]->apply_to(test->shader);
+
+	glActiveTexture(GL_TEXTURE0);
+	test->texture->use();
+
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, light[0]->getDepthCubeMap());
+
+	test->draw();
 }
 
 void Light_And_Shadow::update(GLfloat deltaTime) {
