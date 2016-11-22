@@ -62,8 +62,8 @@ void main()
 
 	//diffuse light
 	vec3 norm = texture(normalMap, TexCoord).rgb;
-	norm.r *= bumpFactor;
-	norm.g *= bumpFactor;
+	//norm.r *= bumpFactor;
+	//norm.g *= bumpFactor;
 	norm = normalize(norm * 2.0 - 1.0);
 
 	vec3 lightDir = normalize(TangentLightPos - TangentFragPos);
