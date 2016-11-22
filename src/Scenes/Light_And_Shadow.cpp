@@ -3,6 +3,9 @@
 #include <glm/gtx/quaternion.hpp>
 
 bool light_follow = false;
+bool increase_normal_effect = false;
+bool decrease_normal_effect = false;
+GLfloat bump_factor = 1.f;
 
 void Light_And_Shadow::init(int window_width, int window_height, const char* title) {
 	Scene::init(window_width, window_height, title);
@@ -19,7 +22,6 @@ Light_And_Shadow::Light_And_Shadow(Input_Handler* i)
 	shader.push_back(new Shader("src/Shaders/Light_And_Shadow/VertexShader.vs","src/Shaders/Light_And_Shadow/FragmentShader.fs"));
 	shader.push_back(new Shader("src/Shaders/Light_And_Shadow/VertexLight.vs", "src/Shaders/Light_And_Shadow/FragmentLight.fs"));
 	shader.push_back(new Shader("src/Shaders/Light_And_Shadow/VertexShader.vs","src/Shaders/Light_And_Shadow/FragmentShader_Light_Affected.fs"));
-
 	//for normal mapping
 	shader.push_back(new Shader("src/Shaders/Light_And_Shadow/smartVertex.vs","src/Shaders/Light_And_Shadow/smartFragment.fs"));
 
@@ -28,26 +30,25 @@ Light_And_Shadow::Light_And_Shadow(Input_Handler* i)
 	glUniform1i(glGetUniformLocation(shader[2]->Program, "depthMap"), 1);
 
 	shader[3]->Use();
-	glUniform1i(glGetUniformLocation(shader[2]->Program, "ourTexture"), 0);
-	glUniform1i(glGetUniformLocation(shader[2]->Program, "depthMap"), 1);
+	glUniform1i(glGetUniformLocation(shader[3]->Program, "ourTexture"), 0);
+	glUniform1i(glGetUniformLocation(shader[3]->Program, "normalMap"), 1);
+	glUniform1i(glGetUniformLocation(shader[3]->Program, "depthMap"), 2);
 
 
 	texture.push_back(new Texture("images/crackedsoil.jpg"));
-	texture.push_back(new Texture("images/wood.jpg"));
-	texture.push_back(new Texture("images/grass.jpg"));
-	texture.push_back(new Texture("images/crackedsoil_nm.jpg"));
+	texture.push_back(new Texture("images/crate.jpg"));
+	//normal maps
+	texture.push_back(new Texture("images/crackedsoil_NRM.png"));
+	texture.push_back(new Texture("images/crate_NRM.png"));
 
 	//objects
-	shape.push_back(new Cube(shader[2], glm::vec3(0,20,0), 5, 5, 5));
-	shape.push_back(new Cube(shader[2], glm::vec3(0,-0.2,0), 100.f, 0.4f, 100.f));
-	shape.push_back(new Cube(shader[2], glm::vec3(10,10,0), 10, 5, 10));
-	shape.push_back(new Cube(shader[2], glm::vec3(-50,0,0), 0.4f, 50, 100));
-	shape.push_back(new Cube(shader[2], glm::vec3(13,10,0), 2, 10, 2));
-	shape.push_back(new Cube(shader[2], glm::vec3(-5,10,5), 5, 2, 2));
-
-	//testcube for normal mapping
-	test = new Cube(shader[3], glm::vec3(0, 50, 10), glm::vec3(-0.5f, 0.5f, 0.5f));
-	test->texture = texture[0];
+	shape.push_back(new Cube(shader[3], glm::vec3(0,20,0), 5, 5, 5));
+	shape.push_back(new Cube(shader[3], glm::vec3(0,-0.2,0), 100.f, 0.4f, 100.f));
+	shape.push_back(new Cube(shader[3], glm::vec3(10,10,0), 10, 5, 10));
+	shape.push_back(new Cube(shader[3], glm::vec3(-50,0,0), 0.4f, 50, 100));
+	shape.push_back(new Cube(shader[3], glm::vec3(0,10,10), glm::vec3(-0.5f, 0.5f, 0.5f)));
+	shape.push_back(new Cube(shader[3], glm::vec3(-5,10,5), glm::vec3(-0.5f, 0.5f, 0.5f)));
+	shape.push_back(new Cube(shader[3], glm::vec3(-5, 20, 30), glm::vec3(-0.5f, 0.5f, 0.5f)));
 
 	//lights
 	light.push_back(new Light(shader[1], glm::vec3(6, 5.5, 5)));
@@ -55,13 +56,21 @@ Light_And_Shadow::Light_And_Shadow(Input_Handler* i)
 	//start position for camera
 	cam.pos = glm::vec3(5, 20, 50);
 
-
 	shape[0]->texture = texture[0];
-	shape[1]->texture = texture[2];
+	shape[1]->texture = texture[1];
 	shape[2]->texture = texture[1];
 	shape[3]->texture = texture[0];
 	shape[4]->texture = texture[0];
 	shape[5]->texture = texture[1];
+	shape[6]->texture = texture[0];
+
+	shape[0]->normalMap = texture[2];
+	shape[1]->normalMap = texture[3];
+	shape[2]->normalMap = texture[3];
+	shape[3]->normalMap = texture[2];
+	shape[4]->normalMap = texture[2];
+	shape[5]->normalMap = texture[3];
+	shape[6]->normalMap = texture[2];
 }
 
 void Light_And_Shadow::render() {
@@ -86,35 +95,43 @@ void Light_And_Shadow::render() {
 		l->render();
 	}
 
-	for (auto& s : shape) {
-		cam.model_translation(s->getPosition());
-		cam.apply_to(s->shader);
-		light[0]->apply_to(s->shader);
+	int i;
+	for ( i = 0; i < shape.size(); ++i)
+	{
+		cam.model_translation(shape[i]->getPosition());
+		cam.apply_to(shape[i]->shader);
+		if(increase_normal_effect || decrease_normal_effect)
+			glUniform1f(glGetUniformLocation(shape[i]->shader->Program, "bumpFactor"), bump_factor);
 
+		light[0]->apply_to(shape[i]->shader);
 		glActiveTexture(GL_TEXTURE0);
-		s->texture->use();
+		shape[i]->texture->use();
 
 		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, light[0]->getDepthCubeMap());
+		shape[i]->normalMap->use();
 
-		s->draw();
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, light[0]->getDepthCubeMap());
+		shape[i]->draw();
 	}
 
-	cam.model_translation(test->getPosition());
-	cam.apply_to(test->shader);
-	light[0]->apply_to(test->shader);
-
-	glActiveTexture(GL_TEXTURE0);
-	test->texture->use();
-
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, light[0]->getDepthCubeMap());
-
-	test->draw();
 }
 
 void Light_And_Shadow::update(GLfloat deltaTime) {
 	light_follow = input->is_pressed(GLFW_KEY_SPACE);
+	increase_normal_effect = input->is_pressed(GLFW_KEY_K);
+	decrease_normal_effect = input->is_pressed(GLFW_KEY_J) && !increase_normal_effect;
+
+	if (increase_normal_effect)
+	{
+		bump_factor += .01f;
+		std::cout << bump_factor << std::endl;
+	}
+	else if (decrease_normal_effect)
+	{
+		bump_factor -= .01f;
+		std::cout << bump_factor << std::endl;
+	}
 	cam.update_fps_style(deltaTime, input);
 }
 

@@ -1,5 +1,6 @@
 #include "Light.h"
 #include "Cube.h"
+#include <glm/gtc/matrix_transform.inl>
 
 //BAD!! NEVER statically INITIALIZE GLEW STUFF!!! GLEW INIT WILL NOT BE CALLED AT THIS TIME!!!
 //Shader* Light::defaultShader = new Shader("src/Shaders/Light_And_Shadow/VertexLight.vs", "src/Shaders/Light_And_Shadow/FragmentLight.fs");

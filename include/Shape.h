@@ -1,7 +1,6 @@
 #pragma once
 #include <GL/glew.h>
 #include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <vector>
 
@@ -22,6 +21,7 @@ public:
 	glm::vec3 position_local;
 	Shader* shader = nullptr;
 	Texture* texture = nullptr;
+	Texture* normalMap = nullptr;
 	Shape() {
 		glGenBuffers(1, &VBO);
 	}

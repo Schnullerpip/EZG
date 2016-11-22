@@ -2,6 +2,7 @@
 in vec3 Normal;
 in vec3 FragPos;
 in vec2 TexCoord;
+
 in vec3 TangentLightPos;
 in vec3 TangentViewPos;
 in vec3 TangentFragPos;
@@ -9,12 +10,15 @@ in vec3 TangentFragPos;
 out vec4 color;
 
 uniform sampler2D ourTexture;
+uniform sampler2D normalMap;
+
 uniform samplerCube depthMap;
 
 uniform vec3 lightColor;
 uniform vec3 lightPosition;
 uniform vec3 cameraPosition;
 uniform float farPlane;
+uniform float bumpFactor;
 
 float specularStrength = 0.5f;
 float ambientStrength = 0.1f;
@@ -57,13 +61,17 @@ void main()
 	vec3 ambient = ambientStrength * lightColor;
 
 	//diffuse light
-	vec3 norm = normalize(Normal);
-	vec3 lightDir = normalize(lightPosition - FragPos);
+	vec3 norm = texture(normalMap, TexCoord).rgb;
+	norm.r *= bumpFactor;
+	norm.g *= bumpFactor;
+	norm = normalize(norm * 2.0 - 1.0);
+
+	vec3 lightDir = normalize(TangentLightPos - TangentFragPos);
 	float diff = max(dot(norm, lightDir), 0.0);
 	vec3 diffuse = diff * lightColor;
 
 	//specular light
-	vec3 viewDir = normalize(cameraPosition - FragPos);
+	vec3 viewDir = normalize(TangentViewPos - TangentFragPos);
 	vec3 reflectDir = reflect(-lightDir, norm);
 	float spec = pow(max(dot(viewDir, reflectDir), 0.0), 64);
 	vec3 specular = specularStrength * spec * lightColor;

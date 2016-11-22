@@ -63,6 +63,7 @@ int main()
 
 
 	Scene* scene = new Light_And_Shadow(&input);
+	//Scene* scene = new Test_Scene();
 
   // Game loop
 	glEnable(GL_DEPTH_TEST);
