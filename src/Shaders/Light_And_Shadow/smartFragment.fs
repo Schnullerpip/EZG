@@ -62,9 +62,9 @@ void main()
 
 	//diffuse light
 	vec3 norm = texture(normalMap, TexCoord).rgb;
-	//norm.r *= bumpFactor;
-	//norm.g *= bumpFactor;
-	norm = normalize(norm * 2.0 - 1.0);
+	norm = norm * 2.0 -1.0;
+	norm.rg *= bumpFactor;
+	norm = normalize(norm);
 
 	vec3 lightDir = normalize(TangentLightPos - TangentFragPos);
 	float diff = max(dot(norm, lightDir), 0.0);

@@ -36,14 +36,17 @@ Light_And_Shadow::Light_And_Shadow(Input_Handler* i)
 
 
 	texture.push_back(new Texture("images/crackedsoil.jpg"));
-	texture.push_back(new Texture("images/crate.jpg"));
-	//normal maps
 	texture.push_back(new Texture("images/crackedsoil_NRM.png"));
+
+	texture.push_back(new Texture("images/crate.jpg"));
 	texture.push_back(new Texture("images/crate_NRM.png"));
 
+	texture.push_back(new Texture("images/grass.jpg"));
+	texture.push_back(new Texture("images/grass_NRM.png"));
+
 	//objects
-	shape.push_back(new Cube(shader[3], glm::vec3(0,20,0), 5, 5, 5));
 	shape.push_back(new Cube(shader[3], glm::vec3(0,-0.2,0), 100.f, 0.4f, 100.f));
+	shape.push_back(new Cube(shader[3], glm::vec3(0,20,0), 5, 5, 5));
 	shape.push_back(new Cube(shader[3], glm::vec3(10,10,0), 10, 5, 10));
 	shape.push_back(new Cube(shader[3], glm::vec3(-50,0,0), 0.4f, 50, 100));
 	shape.push_back(new Cube(shader[3], glm::vec3(0,10,10), glm::vec3(-0.5f, 0.5f, 0.5f)));
@@ -56,21 +59,21 @@ Light_And_Shadow::Light_And_Shadow(Input_Handler* i)
 	//start position for camera
 	cam.pos = glm::vec3(5, 20, 50);
 
-	shape[0]->texture = texture[0];
-	shape[1]->texture = texture[1];
-	shape[2]->texture = texture[1];
+	shape[0]->texture = texture[4];
+	shape[1]->texture = texture[2];
+	shape[2]->texture = texture[2];
 	shape[3]->texture = texture[0];
 	shape[4]->texture = texture[0];
-	shape[5]->texture = texture[1];
+	shape[5]->texture = texture[2];
 	shape[6]->texture = texture[0];
 
-	shape[0]->normalMap = texture[2];
+	shape[0]->normalMap = texture[5];
 	shape[1]->normalMap = texture[3];
 	shape[2]->normalMap = texture[3];
-	shape[3]->normalMap = texture[2];
-	shape[4]->normalMap = texture[2];
+	shape[3]->normalMap = texture[1];
+	shape[4]->normalMap = texture[1];
 	shape[5]->normalMap = texture[3];
-	shape[6]->normalMap = texture[2];
+	shape[6]->normalMap = texture[1];
 }
 
 void Light_And_Shadow::render() {
