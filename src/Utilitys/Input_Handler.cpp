@@ -3,6 +3,15 @@
 #include <GL/glew.h>
 
 
+void Input_Handler::reset()
+{
+	first_mouse = true;
+	for (int i = 0; i < 1024; ++i)
+	{
+		keys[i] = false;
+	}
+}
+
 bool Input_Handler::is_pressed(int key)
 {
 	return ((key >= 1024) ? false : keys[key]);

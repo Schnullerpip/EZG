@@ -11,7 +11,7 @@ protected:
 public:
 	Light_And_Shadow(Input_Handler* i);
 	virtual void render()override;
-	virtual void update(GLfloat deltaTime)override;
+	virtual void update(GLfloat deltaTime, EventFeedback* feedback = nullptr)override;
 	~Light_And_Shadow();
 };
 

@@ -128,7 +128,7 @@ void Test_Scene::render()
     glBindVertexArray(0);
 }
 
-void Test_Scene::update(GLfloat deltaTime)
+void Test_Scene::update(GLfloat deltaTime, EventFeedback* feedback)
 {
 }
 

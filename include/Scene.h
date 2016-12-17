@@ -3,6 +3,7 @@
 #include "Shader.h"
 #include "Shape.h"
 #include "Camera.h"
+#include "EventFeedback.h"
 
 // GLEW
 #define GLEW_STATIC
@@ -24,7 +25,7 @@ public:
 	int width, height;
 	GLFWwindow* window;
 	virtual void render() = 0;
-	virtual void update(GLfloat deltaTime) = 0;
+	virtual void update(GLfloat deltaTime, EventFeedback* feedback) = 0;
 };
 
 inline void Scene::init(int window_width, int window_height, const char* title) {

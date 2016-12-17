@@ -120,10 +120,19 @@ void Light_And_Shadow::render() {
 
 }
 
-void Light_And_Shadow::update(GLfloat deltaTime) {
+void Light_And_Shadow::update(GLfloat deltaTime, EventFeedback* feedback) {
 	light_follow = input->is_pressed(GLFW_KEY_SPACE);
 	increase_normal_effect = input->is_pressed(GLFW_KEY_K);
 	decrease_normal_effect = input->is_pressed(GLFW_KEY_J) && !increase_normal_effect;
+
+	if (feedback->restart = input->is_pressed(GLFW_KEY_SPACE))
+	{
+		feedback->quitgame = true;
+	}
+	else if (feedback->restart = input->is_pressed(GLFW_KEY_ENTER))
+	{
+		feedback->quitgame = false;
+	}
 
 	if (increase_normal_effect)
 	{

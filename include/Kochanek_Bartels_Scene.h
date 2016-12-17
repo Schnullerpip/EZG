@@ -17,6 +17,6 @@ protected:
 public:
 	Kochanek_Bartels_Scene();
 	virtual void render()override;
-	virtual void update(GLfloat deltaTime)override;
+	virtual void update(GLfloat deltaTime, EventFeedback* feedback = nullptr)override;
 	~Kochanek_Bartels_Scene();
 };

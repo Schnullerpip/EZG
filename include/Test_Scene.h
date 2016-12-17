@@ -16,7 +16,7 @@ public:
 
 	Test_Scene();
 	virtual void render()override;
-	virtual void update(GLfloat deltaTime)override;
+	virtual void update(GLfloat deltaTime, EventFeedback* feedback = nullptr)override;
 	~Test_Scene();
 };
 

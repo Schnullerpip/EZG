@@ -12,6 +12,9 @@ public:
 	GLfloat scroll_count;
 	bool first_mouse = true;
 
+	//useful
+	void reset();
+
 	//key handling
 	bool is_pressed(int key);
 	void press_at(int key);

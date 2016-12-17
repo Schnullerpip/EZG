@@ -105,7 +105,7 @@ void Kochanek_Bartels_Scene::render()
 	}
 }
 
-void Kochanek_Bartels_Scene::update(GLfloat deltaTime)
+void Kochanek_Bartels_Scene::update(GLfloat deltaTime, EventFeedback* feedback)
 {
 }
 
