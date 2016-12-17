@@ -125,25 +125,36 @@ void Light_And_Shadow::update(GLfloat deltaTime, EventFeedback* feedback) {
 	increase_normal_effect = input->is_pressed(GLFW_KEY_K);
 	decrease_normal_effect = input->is_pressed(GLFW_KEY_J) && !increase_normal_effect;
 
-	if (feedback->restart = input->is_pressed(GLFW_KEY_SPACE))
-	{
-		feedback->quitgame = true;
-	}
-	else if (feedback->restart = input->is_pressed(GLFW_KEY_ENTER))
+	//check if the antialiasing properties should be modified (in feedback)
+	if (input->is_pressed(GLFW_KEY_1))
+		feedback->setNumberSamples(1);
+	else if (input->is_pressed(GLFW_KEY_2))
+		feedback->setNumberSamples(2);
+	else if (input->is_pressed(GLFW_KEY_3))
+		feedback->setNumberSamples(3);
+	else if (input->is_pressed(GLFW_KEY_4))
+		feedback->setNumberSamples(4);
+
+
+	//check if the game should restart -> for example after configuring antialiasing properties (new context needed)
+	if (feedback->restart = input->is_pressed(GLFW_KEY_ENTER))
 	{
 		feedback->quitgame = false;
 	}
 
+	//check if normalmap specific user input appeared
 	if (increase_normal_effect)
 	{
 		bump_factor += .01f;
-		std::cout << bump_factor << std::endl;
+		std::cout << "[Light_And_Shadow]::update -> bumpyness factor is now: " << bump_factor << std::endl;
 	}
 	else if (decrease_normal_effect)
 	{
 		bump_factor -= .01f;
-		std::cout << bump_factor << std::endl;
+		std::cout << "[Light_And_Shadow]::update -> bumpyness factor is now: " << bump_factor << std::endl;
 	}
+
+	//apply mouse movement to the camera
 	cam.update_fps_style(deltaTime, input);
 }
 

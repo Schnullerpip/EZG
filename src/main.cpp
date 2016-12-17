@@ -48,10 +48,15 @@ int main()
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 		glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
+		glfwWindowHint(GLFW_SAMPLES, feedback.number_samples);
 
 		// Create a GLFWwindow object that we can use for GLFW's functions
 		window = glfwCreateWindow(WIDTH, HEIGHT, "LearnOpenGL", nullptr, nullptr);
 		glfwMakeContextCurrent(window);
+
+		//soonest possible moment for enabling gl-specifics
+		glEnable(GL_DEPTH_TEST);
+		glEnable(GL_MULTISAMPLE);
 
 		// Set the required callback functions
 		glfwSetKeyCallback(window, key_callback);
@@ -75,7 +80,6 @@ int main()
 		//Scene* scene = new Test_Scene();
 
 	  // Game loop
-		glEnable(GL_DEPTH_TEST);
 		//glEnable(GL_CULL_FACE);
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		GLfloat last = 0, now = 0, delta = 0;
