@@ -57,7 +57,12 @@ void TextRenderer::render(std::string text, GLfloat x, GLfloat y, GLfloat scale,
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-TextRenderer::TextRenderer()
+int TextRenderer::getPixelHeight() const
+{
+	return pixel_height;
+}
+
+TextRenderer::TextRenderer(int pixelH):pixel_height(pixelH)
 {
 	default_text_shader = new Shader("src/Shaders/text/text.vs", "src/Shaders/text/text.fs");
 	default_text_shader->Use();
@@ -72,7 +77,7 @@ TextRenderer::TextRenderer()
 		std::cout << "[TextRenderer]::ERROR -> could not initialize FreeType Library" << std::endl;
 
 	FT_Face face;
-	if (FT_New_Face(ft, "fonts/arial.ttf", 0, &face))
+	if (FT_New_Face(ft, "fonts/arialbd.ttf", 0, &face))
 		std::cout << "[TextRenderer]::ERROR -> could not load font" << std::endl;
 
 	FT_Set_Pixel_Sizes(face, 0, 48);

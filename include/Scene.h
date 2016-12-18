@@ -24,7 +24,7 @@ protected:
 public:
 	int width, height;
 	GLFWwindow* window;
-	virtual void render() = 0;
+	virtual void render(GLfloat deltaTime) = 0;
 	virtual void update(GLfloat deltaTime, EventFeedback* feedback) = 0;
 };
 

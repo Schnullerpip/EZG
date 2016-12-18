@@ -12,7 +12,7 @@ public:
 	TextRenderer* tr;
 
 	Test_Scene();
-	virtual void render()override;
+	virtual void render(GLfloat deltaTime)override;
 	virtual void update(GLfloat deltaTime, EventFeedback* feedback = nullptr)override;
 	~Test_Scene();
 

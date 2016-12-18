@@ -2,7 +2,6 @@
 #include <iostream>
 #include <GL/glew.h>
 
-
 void Input_Handler::reset()
 {
 	first_mouse = true;
@@ -12,17 +11,26 @@ void Input_Handler::reset()
 	}
 }
 
-bool Input_Handler::is_pressed(int key)
+bool Input_Handler::is_pressed(int key, bool single_event)
 {
-	return ((key >= 1024) ? false : keys[key]);
+	bool retval = ((key >= 1024) ? false : keys[key]);
+	if (single_event)
+		keys[key] = false;
+	return retval;
 }
 
 void Input_Handler::press_at(int key) {
-	if (key < 1024)keys[key] = true;
+	if (key < 1024)
+	{
+		keys[key] = true;
+	}
 }
 
 void Input_Handler::release_at(int key) {
-	if (key < 1024)keys[key] = false;
+	if (key < 1024)
+	{
+		keys[key] = false;
+	}
 }
 
 void Input_Handler::mouse_move(double x, double y) {

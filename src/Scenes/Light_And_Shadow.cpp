@@ -79,12 +79,13 @@ Light_And_Shadow::Light_And_Shadow(Input_Handler* i, int number_samps)
 	shape[5]->normalMap = texture[3];
 	shape[6]->normalMap = texture[1];
 
-	//initialize the text render engine
-	TextRenderer::Init();
-	tr = new TextRenderer();
+	console = OnScreenConsole(3.2f, 800, 600);
+	std::stringstream ss;
+	ss << "MSAA -> using " << number_samps << " samples";
+	console.add(new OnScreenMessage(ss.str(), glm::vec3(0.5f, 0.8f, 0.3f), 0.3f));
 }
 
-void Light_And_Shadow::render() {
+void Light_And_Shadow::render(GLfloat deltaTime) {
 
 	//first render shadow
 	light[0]->renderShadow(shape, window);
@@ -125,36 +126,45 @@ void Light_And_Shadow::render() {
 		glBindTexture(GL_TEXTURE_CUBE_MAP, light[0]->getDepthCubeMap());
 		shape[i]->draw();
 	}
-
-	//last but not least display system information
-	std::stringstream ss;
-	ss << "MSAA -> using " << number_samples << " samples";
-	tr->render(ss.str(), 0.f, 580, 0.3f, glm::vec3(0.5f, 0.8f, 0.2f), 800, 600);
-
+	console.update(deltaTime);
 }
 
 void Light_And_Shadow::update(GLfloat deltaTime, EventFeedback* feedback) {
-	light_follow = input->is_pressed(GLFW_KEY_SPACE);
-	increase_normal_effect = input->is_pressed(GLFW_KEY_K);
-	decrease_normal_effect = input->is_pressed(GLFW_KEY_J) && !increase_normal_effect;
+	std::string message;
+	std::stringstream ss;
+
+	light_follow = input->is_pressed(GLFW_KEY_SPACE, false);
+	increase_normal_effect = input->is_pressed(GLFW_KEY_K, false);
+	decrease_normal_effect = input->is_pressed(GLFW_KEY_J, false) && !increase_normal_effect;
+
+	auto configureSamples = [&](int n) -> std::string {
+		feedback->setNumberSamples(n);
+		ss << "[MSAA]::Samples -> configured to " << n << " - press return to apply changes";
+		return ss.str();
+	};
 
 	//check if the antialiasing properties should be modified (in feedback)
 	if (input->is_pressed(GLFW_KEY_1))
-		feedback->setNumberSamples(1);
+		message = configureSamples(1);
 	else if (input->is_pressed(GLFW_KEY_2))
-		feedback->setNumberSamples(2);
+		message = configureSamples(2);
 	else if (input->is_pressed(GLFW_KEY_3))
-		feedback->setNumberSamples(3);
+		message = configureSamples(3);
 	else if (input->is_pressed(GLFW_KEY_4))
-		feedback->setNumberSamples(4);
+		message = configureSamples(4);
 	else if (input->is_pressed(GLFW_KEY_5))
-		feedback->setNumberSamples(5);
+		message = configureSamples(5);
 	else if (input->is_pressed(GLFW_KEY_6))
-		feedback->setNumberSamples(6);
+		message = configureSamples(6);
 	else if (input->is_pressed(GLFW_KEY_7))
-		feedback->setNumberSamples(7);
+		message = configureSamples(7);
 	else if (input->is_pressed(GLFW_KEY_8))
-		feedback->setNumberSamples(8);
+		message = configureSamples(8);
+
+	if (!message.empty())
+	{
+		console.add(new OnScreenMessage(message));
+	}
 
 
 	//check if the game should restart -> for example after configuring antialiasing properties (new context needed)
@@ -167,12 +177,15 @@ void Light_And_Shadow::update(GLfloat deltaTime, EventFeedback* feedback) {
 	if (increase_normal_effect)
 	{
 		bump_factor += .01f;
-		std::cout << "[Light_And_Shadow]::update -> bumpyness factor is now: " << bump_factor << std::endl;
+		ss << "[NormalMaps]::Bumpyness factor set to: " << bump_factor;
+		console.add(new OnScreenMessage(ss.str()));
+
 	}
 	else if (decrease_normal_effect)
 	{
 		bump_factor -= .01f;
-		std::cout << "[Light_And_Shadow]::update -> bumpyness factor is now: " << bump_factor << std::endl;
+		ss << "[NormalMaps]::Bumpyness factor set to: " << bump_factor;
+		console.add(new OnScreenMessage(ss.str()));
 	}
 
 	//apply mouse movement to the camera
@@ -182,5 +195,4 @@ void Light_And_Shadow::update(GLfloat deltaTime, EventFeedback* feedback) {
 
 Light_And_Shadow::~Light_And_Shadow()
 {
-	delete tr;
 }

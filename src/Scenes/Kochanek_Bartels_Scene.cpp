@@ -76,7 +76,7 @@ Kochanek_Bartels_Scene::Kochanek_Bartels_Scene() {
 
 	kbi = new KB_Interpolation(checkpoints);
 }
-void Kochanek_Bartels_Scene::render()
+void Kochanek_Bartels_Scene::render(GLfloat deltaTime)
 {
 	glm::vec3 cP = kbi->step();
 	glm::mat4 view_factor;

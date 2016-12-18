@@ -96,7 +96,7 @@ int main()
 			// Draw our first triangle
 
 			scene->update(delta, &feedback);
-			scene->render();
+			scene->render(delta);
 
 			// Swap the screen buffers
 			glfwSwapBuffers(window);

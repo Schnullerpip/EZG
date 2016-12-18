@@ -16,7 +16,7 @@ protected:
 	virtual void init(int window_width, int window_height, const char* title = "")override;
 public:
 	Kochanek_Bartels_Scene();
-	virtual void render()override;
+	virtual void render(GLfloat deltaTime)override;
 	virtual void update(GLfloat deltaTime, EventFeedback* feedback = nullptr)override;
 	~Kochanek_Bartels_Scene();
 };

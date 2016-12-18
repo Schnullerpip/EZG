@@ -20,14 +20,14 @@ void Camera::update_fps_style(GLfloat deltaTime, Input_Handler* input) {
 	GLfloat cameraSpeed = 20.f * deltaTime;
 
 	//keys
-	if (input->is_pressed(GLFW_KEY_W)) {
+	if (input->is_pressed(GLFW_KEY_W, false)) {
 		pos += cameraSpeed * front;
 	}
-    if (input->is_pressed(GLFW_KEY_S))
+    if (input->is_pressed(GLFW_KEY_S, false))
         pos -= cameraSpeed * front;
-    if (input->is_pressed(GLFW_KEY_A))
+    if (input->is_pressed(GLFW_KEY_A, false))
         pos -= glm::normalize(glm::cross(front, up)) * cameraSpeed;
-    if (input->is_pressed(GLFW_KEY_D))
+    if (input->is_pressed(GLFW_KEY_D, false))
         pos += glm::normalize(glm::cross(front, up)) * cameraSpeed;	
 
 	//mouse

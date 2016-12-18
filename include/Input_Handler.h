@@ -5,6 +5,7 @@ class Input_Handler
 {
 	//key relevant
 	bool keys[1024];
+
 public:
 	//mouse relevant
 	double xpos, ypos, lastx, lasty;
@@ -16,7 +17,7 @@ public:
 	void reset();
 
 	//key handling
-	bool is_pressed(int key);
+	bool is_pressed(int key, bool single_event = true);
 	void press_at(int key);
 	void release_at(int key);
 

@@ -18,12 +18,14 @@ class TextRenderer
 {
 	GLuint VBO, VAO;
 	Shader* default_text_shader; 
+	int pixel_height;
 
 public:
 	static void Init();
 	void render(std::string text, GLfloat x, GLfloat y, GLfloat scale, glm::vec3 color, int WIDTH, int HEIGHT) const;
+	int getPixelHeight()const;
 
-	TextRenderer();
+	TextRenderer(int pixelheight = 48);
 	~TextRenderer();
 	
 };

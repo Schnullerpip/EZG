@@ -16,7 +16,7 @@ Test_Scene::Test_Scene()
 	tr = new TextRenderer();
 }
 
-void Test_Scene::render()
+void Test_Scene::render(GLfloat deltaTime)
 {
 	// Compile and setup the shader
     Shader shader("src/Shaders/text/text.vs", "src/Shaders/text/text.fs");
