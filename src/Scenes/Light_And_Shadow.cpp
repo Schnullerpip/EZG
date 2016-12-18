@@ -1,6 +1,8 @@
 #include "Light_And_Shadow.h"
 #include "Cube.h"
 #include <glm/gtx/quaternion.hpp>
+#include "Text.h"
+
 
 bool light_follow = false;
 bool increase_normal_effect = false;
@@ -12,11 +14,13 @@ void Light_And_Shadow::init(int window_width, int window_height, const char* tit
 
 	glEnable(GL_DEPTH_TEST);
 	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+
 }
 
-Light_And_Shadow::Light_And_Shadow(Input_Handler* i)
+Light_And_Shadow::Light_And_Shadow(Input_Handler* i, int number_samps)
 {
 	input = i;
+	number_samples = number_samps;
 
 	//shaders
 	shader.push_back(new Shader("src/Shaders/Light_And_Shadow/VertexShader.vs","src/Shaders/Light_And_Shadow/FragmentShader.fs"));
@@ -74,6 +78,10 @@ Light_And_Shadow::Light_And_Shadow(Input_Handler* i)
 	shape[4]->normalMap = texture[1];
 	shape[5]->normalMap = texture[3];
 	shape[6]->normalMap = texture[1];
+
+	//initialize the text render engine
+	TextRenderer::Init();
+	tr = new TextRenderer();
 }
 
 void Light_And_Shadow::render() {
@@ -118,6 +126,11 @@ void Light_And_Shadow::render() {
 		shape[i]->draw();
 	}
 
+	//last but not least display system information
+	std::stringstream ss;
+	ss << "MSAA -> using " << number_samples << " samples";
+	tr->render(ss.str(), 0.f, 580, 0.3f, glm::vec3(0.5f, 0.8f, 0.2f), 800, 600);
+
 }
 
 void Light_And_Shadow::update(GLfloat deltaTime, EventFeedback* feedback) {
@@ -134,6 +147,14 @@ void Light_And_Shadow::update(GLfloat deltaTime, EventFeedback* feedback) {
 		feedback->setNumberSamples(3);
 	else if (input->is_pressed(GLFW_KEY_4))
 		feedback->setNumberSamples(4);
+	else if (input->is_pressed(GLFW_KEY_5))
+		feedback->setNumberSamples(5);
+	else if (input->is_pressed(GLFW_KEY_6))
+		feedback->setNumberSamples(6);
+	else if (input->is_pressed(GLFW_KEY_7))
+		feedback->setNumberSamples(7);
+	else if (input->is_pressed(GLFW_KEY_8))
+		feedback->setNumberSamples(8);
 
 
 	//check if the game should restart -> for example after configuring antialiasing properties (new context needed)
@@ -156,8 +177,10 @@ void Light_And_Shadow::update(GLfloat deltaTime, EventFeedback* feedback) {
 
 	//apply mouse movement to the camera
 	cam.update_fps_style(deltaTime, input);
+
 }
 
 Light_And_Shadow::~Light_And_Shadow()
 {
+	delete tr;
 }

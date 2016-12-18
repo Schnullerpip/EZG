@@ -57,6 +57,8 @@ int main()
 		//soonest possible moment for enabling gl-specifics
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_MULTISAMPLE);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 		// Set the required callback functions
 		glfwSetKeyCallback(window, key_callback);
@@ -76,7 +78,7 @@ int main()
 		glViewport(0, 0, width, height);
 
 
-		Scene* scene = new Light_And_Shadow(&input);
+		Scene* scene = new Light_And_Shadow(&input, feedback.number_samples);
 		//Scene* scene = new Test_Scene();
 
 	  // Game loop
