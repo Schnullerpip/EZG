@@ -77,7 +77,7 @@ TextRenderer::TextRenderer(int pixelH):pixel_height(pixelH)
 		std::cout << "[TextRenderer]::ERROR -> could not initialize FreeType Library" << std::endl;
 
 	FT_Face face;
-	if (FT_New_Face(ft, "fonts/arialbd.ttf", 0, &face))
+	if (FT_New_Face(ft, "fonts/lucon.ttf", 0, &face))
 		std::cout << "[TextRenderer]::ERROR -> could not load font" << std::endl;
 
 	FT_Set_Pixel_Sizes(face, 0, 48);

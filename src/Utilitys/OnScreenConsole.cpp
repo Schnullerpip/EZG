@@ -101,7 +101,7 @@ void OnScreenConsole::in()
 
 void OnScreenConsole::actOnChange(eventType et)
 {
-	std::cout << input->last_input << std::endl;
+	//std::cout << input->last_input << std::endl;
 	switch (et){
 
 	case KEYRELEASED:
@@ -174,5 +174,25 @@ void OnScreenConsole::interpreteInput(std::string input)
 		std::stringstream ss(in);
 		ss.ignore(in.size(), ' ');
 		ss >> feedback->number_samples;
+		ss.clear();
+		ss << "[samples]::set to " << feedback->number_samples;
+		std::string out_string(ss.str());
+		out(new OnScreenMessage(out_string));
+	}
+	//possibility to configure diferent modes
+	else if (!in.compare("CSAA"))
+	{
+		//TODO
+		out(new OnScreenMessage("[AA]::mode set to CSAA"));
+	}
+	else if (!in.compare("FSAA"))
+	{
+		//TODO
+		out(new OnScreenMessage("[AA]::mode set to FSAA"));
+	}
+	else if (!in.compare("MSAA"))
+	{
+		//TODO
+		out(new OnScreenMessage("[AA]::mode set to MSAA"));
 	}
 }

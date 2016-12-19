@@ -85,7 +85,7 @@ Light_And_Shadow::Light_And_Shadow(Input_Handler* i, EventFeedback* fb)
 	input->subscribe(console); //events come from observerpattern
 	std::stringstream ss;
 	ss << "MSAA -> using " << feedback->number_samples << " samples";
-	console->out(new OnScreenMessage(ss.str(), glm::vec3(0.5f, 0.8f, 0.3f), 0.3f));
+	console->out(new OnScreenMessage(ss.str()));
 }
 
 void Light_And_Shadow::render(GLfloat deltaTime) {
@@ -141,38 +141,6 @@ void Light_And_Shadow::update(GLfloat deltaTime, EventFeedback* feedback) {
 	increase_normal_effect = input->is_pressed(GLFW_KEY_K, false);
 	decrease_normal_effect = input->is_pressed(GLFW_KEY_J, false) && !increase_normal_effect;
 
-	auto configureSamples = [&](int n) -> std::string {
-		feedback->setNumberSamples(n);
-		ss << "[MSAA]::Samples -> configured to " << n << " - press return to apply changes";
-		return ss.str();
-	};
-
-	//check if the antialiasing properties should be modified (in feedback)
-	if (input->is_pressed(GLFW_KEY_0))
-		message = configureSamples(0);
-	else if (input->is_pressed(GLFW_KEY_1))
-		message = configureSamples(1);
-	else if (input->is_pressed(GLFW_KEY_2))
-		message = configureSamples(2);
-	else if (input->is_pressed(GLFW_KEY_3))
-		message = configureSamples(3);
-	else if (input->is_pressed(GLFW_KEY_4))
-		message = configureSamples(4);
-	else if (input->is_pressed(GLFW_KEY_5))
-		message = configureSamples(5);
-	else if (input->is_pressed(GLFW_KEY_6))
-		message = configureSamples(6);
-	else if (input->is_pressed(GLFW_KEY_7))
-		message = configureSamples(7);
-	else if (input->is_pressed(GLFW_KEY_8))
-		message = configureSamples(8);
-
-	if (!message.empty())
-	{
-		console->out(new OnScreenMessage(message));
-	}
-
-
 	//check if the game should restart -> for example after configuring antialiasing properties (new context needed)
 	//if (feedback->restart = input->is_pressed(GLFW_KEY_ENTER))
 	//{
@@ -183,14 +151,14 @@ void Light_And_Shadow::update(GLfloat deltaTime, EventFeedback* feedback) {
 	if (increase_normal_effect)
 	{
 		bump_factor += .01f;
-		ss << "[NormalMaps]::Bumpyness factor set to: " << bump_factor;
+		ss << "[Bumpyness]::set to: " << bump_factor;
 		console->out(new OnScreenMessage(ss.str()));
 
 	}
 	else if (decrease_normal_effect)
 	{
 		bump_factor -= .01f;
-		ss << "[NormalMaps]::Bumpyness factor set to: " << bump_factor;
+		ss << "[Bumpyness]::set to: " << bump_factor;
 		console->out(new OnScreenMessage(ss.str()));
 	}
 
