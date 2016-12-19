@@ -10,10 +10,8 @@ protected:
 	Input_Handler* input;
 	Shape* test;
 	OnScreenConsole console;
-
-	int number_samples;
 public:
-	Light_And_Shadow(Input_Handler* i, int number_samples);
+	Light_And_Shadow(Input_Handler* i, EventFeedback* fb);
 	virtual void render(GLfloat deltaTime)override;
 	virtual void update(GLfloat deltaTime, EventFeedback* feedback = nullptr)override;
 	~Light_And_Shadow();

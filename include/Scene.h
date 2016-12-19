@@ -20,6 +20,7 @@ protected:
 	std::vector<Shape*> shape;
 	std::vector<Light*> light;
 	std::vector<Texture*> texture;
+	EventFeedback* feedback;
 	virtual void init(int window_width, int window_height, const char* title = "");
 public:
 	int width, height;

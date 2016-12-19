@@ -17,10 +17,10 @@ void Light_And_Shadow::init(int window_width, int window_height, const char* tit
 
 }
 
-Light_And_Shadow::Light_And_Shadow(Input_Handler* i, int number_samps)
+Light_And_Shadow::Light_And_Shadow(Input_Handler* i, EventFeedback* fb)
 {
 	input = i;
-	number_samples = number_samps;
+	feedback = fb;
 
 	//shaders
 	shader.push_back(new Shader("src/Shaders/Light_And_Shadow/VertexShader.vs","src/Shaders/Light_And_Shadow/FragmentShader.fs"));
@@ -79,10 +79,10 @@ Light_And_Shadow::Light_And_Shadow(Input_Handler* i, int number_samps)
 	shape[5]->normalMap = texture[3];
 	shape[6]->normalMap = texture[1];
 
-	console = OnScreenConsole(3.2f, input, 800, 600);
+	console = OnScreenConsole(3.2f, input, feedback, 800, 600);
 	input->subscribe(&console);
 	std::stringstream ss;
-	ss << "MSAA -> using " << number_samps << " samples";
+	ss << "MSAA -> using " << feedback->number_samples << " samples";
 	console.out(new OnScreenMessage(ss.str(), glm::vec3(0.5f, 0.8f, 0.3f), 0.3f));
 }
 
@@ -134,6 +134,7 @@ void Light_And_Shadow::update(GLfloat deltaTime, EventFeedback* feedback) {
 	std::string message;
 	std::stringstream ss;
 
+	if (console.isInInsertMode())return;
 	light_follow = input->is_pressed(GLFW_KEY_SPACE, false);
 	increase_normal_effect = input->is_pressed(GLFW_KEY_K, false);
 	decrease_normal_effect = input->is_pressed(GLFW_KEY_J, false) && !increase_normal_effect;
@@ -171,10 +172,10 @@ void Light_And_Shadow::update(GLfloat deltaTime, EventFeedback* feedback) {
 
 
 	//check if the game should restart -> for example after configuring antialiasing properties (new context needed)
-	if (feedback->restart = input->is_pressed(GLFW_KEY_ENTER))
-	{
-		feedback->quitgame = false;
-	}
+	//if (feedback->restart = input->is_pressed(GLFW_KEY_ENTER))
+	//{
+	//	feedback->quitgame = false;
+	//}
 
 	//check if normalmap specific user input appeared
 	if (increase_normal_effect)

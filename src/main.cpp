@@ -78,14 +78,14 @@ int main()
 		glViewport(0, 0, width, height);
 
 
-		Scene* scene = new Light_And_Shadow(&input, feedback.number_samples);
+		Scene* scene = new Light_And_Shadow(&input, &feedback);
 		//Scene* scene = new Test_Scene();
 
 	  // Game loop
 		//glEnable(GL_CULL_FACE);
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		GLfloat last = 0, now = 0, delta = 0;
-		while (!glfwWindowShouldClose(window))
+		while (!feedback.quitgame)
 		{
 			now = glfwGetTime();
 			delta = now - last;
@@ -117,9 +117,9 @@ int main()
 // Is called whenever a key is pressed/released via GLFW
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
 {
-	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-		glfwSetWindowShouldClose(window, GL_TRUE);
-	else if (action == GLFW_PRESS)
+	//if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+	//	glfwSetWindowShouldClose(window, GL_TRUE);
+	 if (action == GLFW_PRESS)
 		input.press_at(key);
 	else if (action == GLFW_RELEASE)
 		input.release_at(key);

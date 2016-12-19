@@ -3,6 +3,7 @@
 #include <deque>
 #include <Text.h>
 #include "Input_Handler.h"
+#include "EventFeedback.h"
 
 class OnScreenConsole : public InputListener
 {
@@ -12,14 +13,21 @@ class OnScreenConsole : public InputListener
 	float WINDOW_WIDTH, WINDOW_HEIGHT;	
 	TextRenderer* textRenderer;
 	Input_Handler* input;
+	EventFeedback* feedback;
+
+	OnScreenMessage* current_input = nullptr;
+	bool insert_mode = false;
+	void interpreteInput(std::string s);
+	std::string clear();
 public:
-	void out(OnScreenMessage* msg);
+	void out(OnScreenMessage* msg = nullptr);
 	void update(float deltatime);
-	std::string in();
-	OnScreenConsole(float ki, Input_Handler* input, int window_width, int window_height);
+	void in();
+	OnScreenConsole(float ki, Input_Handler* input, EventFeedback* fb, int window_width, int window_height);
 	OnScreenConsole();
 	~OnScreenConsole();
 
 	//InputListener
 	virtual void actOnChange(eventType et)override;
+	bool isInInsertMode();
 };

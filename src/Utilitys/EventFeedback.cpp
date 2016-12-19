@@ -10,7 +10,7 @@ void EventFeedback::setNumberSamples(int number)
 void EventFeedback::reset()
 {
 	restart = false;
-	quitgame = true;
+	quitgame = false;
 }
 
 EventFeedback::EventFeedback()
