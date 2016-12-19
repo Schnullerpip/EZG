@@ -144,7 +144,9 @@ void Light_And_Shadow::update(GLfloat deltaTime, EventFeedback* feedback) {
 	};
 
 	//check if the antialiasing properties should be modified (in feedback)
-	if (input->is_pressed(GLFW_KEY_1))
+	if (input->is_pressed(GLFW_KEY_0))
+		message = configureSamples(0);
+	else if (input->is_pressed(GLFW_KEY_1))
 		message = configureSamples(1);
 	else if (input->is_pressed(GLFW_KEY_2))
 		message = configureSamples(2);
