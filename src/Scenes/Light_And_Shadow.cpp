@@ -79,7 +79,7 @@ Light_And_Shadow::Light_And_Shadow(Input_Handler* i, EventFeedback* fb)
 	shape[5]->normalMap = texture[3];
 	shape[6]->normalMap = texture[1];
 
-	console = OnScreenConsole(3.2f, input, feedback, 800, 600);
+	console = OnScreenConsole(1.5f, input, feedback, 800, 600);
 	input->subscribe(&console);
 	std::stringstream ss;
 	ss << "MSAA -> using " << feedback->number_samples << " samples";

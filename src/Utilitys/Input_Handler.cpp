@@ -24,7 +24,6 @@ void Input_Handler::press_at(int key) {
 	{
 		keys[key] = true;
 	}
-	last_input = key;
 	triggerListeners(KEYPRESSED);
 }
 
@@ -33,6 +32,7 @@ void Input_Handler::release_at(int key) {
 	{
 		keys[key] = false;
 	}
+	last_input = key;
 	triggerListeners(KEYRELEASED);
 }
 
