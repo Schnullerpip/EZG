@@ -195,4 +195,9 @@ void OnScreenConsole::interpreteInput(std::string input)
 		//TODO
 		out(new OnScreenMessage("[AA]::mode set to MSAA"));
 	}
+	else
+	{
+		if (in != "")
+			out(new OnScreenMessage("unknown command"));
+	}
 }
