@@ -21,7 +21,7 @@ std::string OnScreenConsole::clear()
 void OnScreenConsole::out(OnScreenMessage* msg)
 {
 	//if no msg was given - output the current assembled line
-	if (!msg && !current_input)
+	if (!msg && current_input)
 	{
 		messages.push_back(current_input);
 	}
@@ -65,11 +65,6 @@ void OnScreenConsole::update(float deltatime)
 	}
 }
 
-void OnScreenConsole::in()
-{
-	out(new OnScreenMessage("$>"));
-	insert_mode = true;
-}
 
 OnScreenConsole::OnScreenConsole(float ki, Input_Handler* in, EventFeedback* fb,int window_width, int window_height) :OnScreenConsole()
 {
@@ -95,6 +90,13 @@ OnScreenConsole::~OnScreenConsole()
 	}
 }
 
+void OnScreenConsole::in()
+{
+	current_input = new OnScreenMessage("$>");
+	out();
+	insert_mode = true;
+}
+
 void OnScreenConsole::actOnChange(eventType et)
 {
 	switch (et){
@@ -108,13 +110,7 @@ void OnScreenConsole::actOnChange(eventType et)
 				interpreteInput(clear());
 				break;
 			}
-			if (!current_input) {
-				current_input = new OnScreenMessage(std::string()+input->last_input);
-				out(current_input);
-			}
-			else {
-				current_input->addToMessage(std::string() + input->last_input);
-			}
+			current_input->addToMessage(std::string() + input->last_input);
 		}
 		else
 		{
@@ -139,8 +135,9 @@ bool OnScreenConsole::isInInsertMode()
 	return insert_mode;
 }
 
-void OnScreenConsole::interpreteInput(std::string in)
+void OnScreenConsole::interpreteInput(std::string input)
 {
+	std::string in = input.substr(2, input.size());
 	if (!in.compare("QUIT") || !in.compare("Q"))
 	{
 		feedback->quitgame = true;
