@@ -9,7 +9,7 @@ protected:
 	virtual void init(int window_width, int window_height, const char* title = "")override;
 	Input_Handler* input;
 	Shape* test;
-	OnScreenConsole console;
+	OnScreenConsole* console;
 public:
 	Light_And_Shadow(Input_Handler* i, EventFeedback* fb);
 	virtual void render(GLfloat deltaTime)override;

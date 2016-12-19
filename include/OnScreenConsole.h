@@ -16,6 +16,7 @@ class OnScreenConsole : public InputListener
 	EventFeedback* feedback;
 
 	OnScreenMessage* current_input = nullptr;
+	std::string last_command = "";
 	bool insert_mode = false;
 	void interpreteInput(std::string s);
 	std::string clear();
@@ -29,5 +30,5 @@ public:
 
 	//InputListener
 	virtual void actOnChange(eventType et)override;
-	bool isInInsertMode();
+	bool isInInsertMode() const;
 };

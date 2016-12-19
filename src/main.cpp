@@ -108,9 +108,12 @@ int main()
 				break;
 			}
 		}
+		// Terminate GLFW, clearing any resources allocated by GLFW.
+		delete scene;
 		glfwTerminate();
 	} while (!feedback.quitgame);
-	// Terminate GLFW, clearing any resources allocated by GLFW.
+
+
 	return 0;
 }
 

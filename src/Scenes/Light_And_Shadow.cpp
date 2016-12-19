@@ -79,11 +79,13 @@ Light_And_Shadow::Light_And_Shadow(Input_Handler* i, EventFeedback* fb)
 	shape[5]->normalMap = texture[3];
 	shape[6]->normalMap = texture[1];
 
-	console = OnScreenConsole(1.5f, input, feedback, 800, 600);
-	input->subscribe(&console);
+
+	//initialize the OnScreenConsole
+	console = new OnScreenConsole(1.5f, input, feedback, 800, 600);
+	input->subscribe(console); //events come from observerpattern
 	std::stringstream ss;
 	ss << "MSAA -> using " << feedback->number_samples << " samples";
-	console.out(new OnScreenMessage(ss.str(), glm::vec3(0.5f, 0.8f, 0.3f), 0.3f));
+	console->out(new OnScreenMessage(ss.str(), glm::vec3(0.5f, 0.8f, 0.3f), 0.3f));
 }
 
 void Light_And_Shadow::render(GLfloat deltaTime) {
@@ -127,14 +129,14 @@ void Light_And_Shadow::render(GLfloat deltaTime) {
 		glBindTexture(GL_TEXTURE_CUBE_MAP, light[0]->getDepthCubeMap());
 		shape[i]->draw();
 	}
-	console.update(deltaTime);
+	console->update(deltaTime);
 }
 
 void Light_And_Shadow::update(GLfloat deltaTime, EventFeedback* feedback) {
 	std::string message;
 	std::stringstream ss;
 
-	if (console.isInInsertMode())return;
+	if (console->isInInsertMode())return;
 	light_follow = input->is_pressed(GLFW_KEY_SPACE, false);
 	increase_normal_effect = input->is_pressed(GLFW_KEY_K, false);
 	decrease_normal_effect = input->is_pressed(GLFW_KEY_J, false) && !increase_normal_effect;
@@ -167,7 +169,7 @@ void Light_And_Shadow::update(GLfloat deltaTime, EventFeedback* feedback) {
 
 	if (!message.empty())
 	{
-		console.out(new OnScreenMessage(message));
+		console->out(new OnScreenMessage(message));
 	}
 
 
@@ -182,14 +184,14 @@ void Light_And_Shadow::update(GLfloat deltaTime, EventFeedback* feedback) {
 	{
 		bump_factor += .01f;
 		ss << "[NormalMaps]::Bumpyness factor set to: " << bump_factor;
-		console.out(new OnScreenMessage(ss.str()));
+		console->out(new OnScreenMessage(ss.str()));
 
 	}
 	else if (decrease_normal_effect)
 	{
 		bump_factor -= .01f;
 		ss << "[NormalMaps]::Bumpyness factor set to: " << bump_factor;
-		console.out(new OnScreenMessage(ss.str()));
+		console->out(new OnScreenMessage(ss.str()));
 	}
 
 	//apply mouse movement to the camera
@@ -199,4 +201,11 @@ void Light_And_Shadow::update(GLfloat deltaTime, EventFeedback* feedback) {
 
 Light_And_Shadow::~Light_And_Shadow()
 {
+	for (auto t : texture)
+		delete t;
+	for (auto s : shader)
+		delete s;
+	for (auto s : shape)
+		delete s;
+	delete console;
 }

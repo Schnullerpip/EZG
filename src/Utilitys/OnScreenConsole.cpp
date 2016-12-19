@@ -7,6 +7,7 @@
 std::string OnScreenConsole::clear()
 {
 	std::string retVal = current_input->message;
+	last_command = retVal;
 	while (messages.size() > 0)
 	{
 		OnScreenMessage* msg = messages.front();
@@ -88,6 +89,7 @@ OnScreenConsole::~OnScreenConsole()
 	{
 		delete msg;
 	}
+	delete textRenderer;
 }
 
 void OnScreenConsole::in()
@@ -99,6 +101,7 @@ void OnScreenConsole::in()
 
 void OnScreenConsole::actOnChange(eventType et)
 {
+	std::cout << input->last_input << std::endl;
 	switch (et){
 
 	case KEYRELEASED:
@@ -108,6 +111,17 @@ void OnScreenConsole::actOnChange(eventType et)
 			{
 				insert_mode = !insert_mode;
 				interpreteInput(clear());
+				break;
+			}
+			if (input->last_input == '\t')
+			{
+				current_input->message = last_command;
+				break;
+			}
+			if (input->last_input == '\x3')
+			{
+				if (current_input->message.size() > 2)
+					current_input->message = current_input->message.substr(0, current_input->message.size() - 1);
 				break;
 			}
 			current_input->addToMessage(std::string() + input->last_input);
@@ -130,7 +144,7 @@ void OnScreenConsole::actOnChange(eventType et)
 	}
 }
 
-bool OnScreenConsole::isInInsertMode()
+bool OnScreenConsole::isInInsertMode() const
 {
 	return insert_mode;
 }
@@ -154,5 +168,11 @@ void OnScreenConsole::interpreteInput(std::string input)
 	else if (!in.compare("YOU STINK"))
 	{
 		out(new OnScreenMessage("STFU!!!!!"));
+	}
+	else if (in.find("SAMPLES") != std::string::npos)
+	{
+		std::stringstream ss(in);
+		ss.ignore(in.size(), ' ');
+		ss >> feedback->number_samples;
 	}
 }
