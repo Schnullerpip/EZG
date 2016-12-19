@@ -79,10 +79,11 @@ Light_And_Shadow::Light_And_Shadow(Input_Handler* i, int number_samps)
 	shape[5]->normalMap = texture[3];
 	shape[6]->normalMap = texture[1];
 
-	console = OnScreenConsole(3.2f, 800, 600);
+	console = OnScreenConsole(3.2f, input, 800, 600);
+	input->subscribe(&console);
 	std::stringstream ss;
 	ss << "MSAA -> using " << number_samps << " samples";
-	console.add(new OnScreenMessage(ss.str(), glm::vec3(0.5f, 0.8f, 0.3f), 0.3f));
+	console.out(new OnScreenMessage(ss.str(), glm::vec3(0.5f, 0.8f, 0.3f), 0.3f));
 }
 
 void Light_And_Shadow::render(GLfloat deltaTime) {
@@ -165,7 +166,7 @@ void Light_And_Shadow::update(GLfloat deltaTime, EventFeedback* feedback) {
 
 	if (!message.empty())
 	{
-		console.add(new OnScreenMessage(message));
+		console.out(new OnScreenMessage(message));
 	}
 
 
@@ -180,14 +181,14 @@ void Light_And_Shadow::update(GLfloat deltaTime, EventFeedback* feedback) {
 	{
 		bump_factor += .01f;
 		ss << "[NormalMaps]::Bumpyness factor set to: " << bump_factor;
-		console.add(new OnScreenMessage(ss.str()));
+		console.out(new OnScreenMessage(ss.str()));
 
 	}
 	else if (decrease_normal_effect)
 	{
 		bump_factor -= .01f;
 		ss << "[NormalMaps]::Bumpyness factor set to: " << bump_factor;
-		console.add(new OnScreenMessage(ss.str()));
+		console.out(new OnScreenMessage(ss.str()));
 	}
 
 	//apply mouse movement to the camera

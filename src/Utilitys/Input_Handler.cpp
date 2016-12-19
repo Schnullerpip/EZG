@@ -24,6 +24,8 @@ void Input_Handler::press_at(int key) {
 	{
 		keys[key] = true;
 	}
+	last_input = key;
+	triggerListeners(KEYPRESSED);
 }
 
 void Input_Handler::release_at(int key) {
@@ -31,6 +33,7 @@ void Input_Handler::release_at(int key) {
 	{
 		keys[key] = false;
 	}
+	triggerListeners(KEYRELEASED);
 }
 
 void Input_Handler::mouse_move(double x, double y) {
@@ -51,10 +54,25 @@ void Input_Handler::mouse_move(double x, double y) {
     GLfloat sensitivity = 0.05;	// Change this value to your liking
     xoffset *= sensitivity;
     yoffset *= sensitivity;
+	triggerListeners(MOUSEMOVED);
 }
 
 void Input_Handler::mouse_scroll(double x, double y) {
 	scroll_count += (x + y);
+	triggerListeners(MOUSESCROLL);
+}
+
+void Input_Handler::subscribe(InputListener* listener)
+{
+	listeners.push_back(listener);
+}
+
+void Input_Handler::triggerListeners(eventType et)
+{
+	for (InputListener* l : listeners)
+	{
+		l->actOnChange(et);
+	}
 }
 
 Input_Handler::~Input_Handler()

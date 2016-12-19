@@ -1,15 +1,13 @@
 #include "OnScreenConsole.h"
+#include "Input_Handler.h"
 
 
-void OnScreenConsole::add(OnScreenMessage* msg)
+void OnScreenConsole::out(OnScreenMessage* msg)
 {
 	messages.push_back(msg);
 
 	//if the screen is packed -> pop_front
 	float accumulated_height = 0;
-	for (auto msg : messages)
-	{
-	}
 	for (int i = 0; i < messages.size(); ++i)
 	{
 		OnScreenMessage* msg = messages[i];
@@ -39,12 +37,22 @@ void OnScreenConsole::update(float deltatime)
 	}
 }
 
-OnScreenConsole::OnScreenConsole(float ki, int window_width, int window_height):OnScreenConsole()
+std::string OnScreenConsole::in()
 {
+	out(new OnScreenMessage("$>"));
+
+	//TODO
+	return "";
+}
+
+OnScreenConsole::OnScreenConsole(float ki, Input_Handler* in, int window_width, int window_height) :OnScreenConsole()
+{
+	this->input = in;
 	this->ki = ki;
 	WINDOW_WIDTH = window_width;
 	WINDOW_HEIGHT = window_height;
 }
+
 
 OnScreenConsole::OnScreenConsole()
 {
@@ -57,5 +65,19 @@ OnScreenConsole::~OnScreenConsole()
 	for (auto msg : messages)
 	{
 		delete msg;
+	}
+}
+
+void OnScreenConsole::actOnChange(eventType et)
+{
+	switch (et){
+
+	case KEYPRESSED:
+		out(new OnScreenMessage(""+input->last_input));
+		break;
+
+	default:
+		break;
+
 	}
 }
