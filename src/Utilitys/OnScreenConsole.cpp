@@ -1,6 +1,23 @@
 #include "OnScreenConsole.h"
-#include "Input_Handler.h"
+#include "Input_handler.h"
 #include <GLFW/glfw3.h>
+
+const int num_targets = 5;
+int targets[num_targets] = {
+	GL_LINE_SMOOTH_HINT,
+	GL_PERSPECTIVE_CORRECTION_HINT,
+	GL_POINT_SMOOTH_HINT,
+	GL_POLYGON_SMOOTH_HINT,
+	GL_TEXTURE_COMPRESSION_HINT,
+};
+
+const char* target_strings[num_targets] = {
+	"GL_LINE_SMOOTH_HINT",
+	"GL_PERSPECTIVE_CORRECTION_HINT",
+	"GL_POINT_SMOOTH_HINT",
+	"GL_POLYGON_SMOOTH_HINT",
+	"GL_TEXTURE_COMPRESSION_HINT",
+};
 
 
 
@@ -45,6 +62,10 @@ void OnScreenConsole::out(OnScreenMessage* msg)
 	}
 }
 
+void OnScreenConsole::out(std::string message)
+{
+	out(new OnScreenMessage(message));
+}
 
 
 void OnScreenConsole::update(float deltatime)
@@ -107,18 +128,23 @@ void OnScreenConsole::actOnChange(eventType et)
 	case KEYRELEASED:
 		if (insert_mode)
 		{
-			if (input->last_input == '\x1')
+			if (input->last_input == '\x1') //return
 			{
 				insert_mode = !insert_mode;
 				interpreteInput(clear());
 				break;
 			}
-			if (input->last_input == '\t')
+			if (input->last_input == '\t') //arrow up
 			{
 				current_input->message = last_command;
 				break;
 			}
-			if (input->last_input == '\x3')
+			if (input->last_input == '\x2') //tab
+			{
+				proposal(current_input->message);
+				break;
+			}
+			if (input->last_input == '\x3') //delete
 			{
 				if (current_input->message.size() > 2)
 					current_input->message = current_input->message.substr(0, current_input->message.size() - 1);
@@ -148,6 +174,24 @@ bool OnScreenConsole::isInInsertMode() const
 {
 	return insert_mode;
 }
+
+
+	std::string isSuported(const char* ext)
+	{
+		std::stringstream ss;
+		if (glewIsSupported(ext))
+		{
+			ss << ext << " is supported!";
+		}
+		else
+		{
+			ss << ext << " is NOT supported!";
+		}
+
+		std::string retVal = ss.str();
+		return retVal;
+	};
+
 
 void OnScreenConsole::interpreteInput(std::string input)
 {
@@ -179,16 +223,70 @@ void OnScreenConsole::interpreteInput(std::string input)
 		std::string out_string(ss.str());
 		out(new OnScreenMessage(out_string));
 	}
-	//possibility to configure diferent modes
+	else if (in.find("HINT") != std::string::npos)
+	{
+		bool all = false;
+		out(isSuported("GL_NV_multisample_filter_hint"));
+		out(isSuported("GL_NV_framebuffer_multisample_coverage"));
+
+		int target_idx = -1, mode = -1;
+		std::stringstream ss(in);
+		std::string target_s, mode_s;
+		ss >> target_s >> target_s; //now has target
+		ss >> mode_s; //now has mode 
+
+		if (mode_s == "NICEST") {
+			mode = GL_NICEST;
+		}
+		else if (mode_s == "FASTEST") {
+			mode = GL_FASTEST;
+		}
+		else {
+			mode_s = "DONT_CARE";
+			mode = GL_DONT_CARE;
+		}
+
+		auto apply_mode = [&](int t, std::string ts, int m, std::string ms)
+		{
+			glHint(t, m);
+			feedback->hints.push_back(std::pair<int, int>(t, m));
+			out(std::string("[") + ts + "]::set to -> " + ms);
+		};
+
+		for (int i = 0; i < num_targets; ++i)
+		{
+			if (!target_s.compare(target_strings[i]))
+			{
+				target_idx = i;
+				break;
+			}
+		}
+		if (target_idx == -1)
+		{
+			if (target_s == "ALL")
+			{
+				ss >> mode_s; //now has mode
+				for (int i = 0; i < num_targets; ++i)
+				{
+					apply_mode(targets[i], std::string(target_strings[i]), mode, mode_s);
+				}
+			}
+			else { return; }
+		}
+
+		int target_int = targets[target_idx];
+		apply_mode(target_idx, target_s, mode, mode_s);
+	}
+	//possibility to configure different modes
 	else if (!in.compare("CSAA"))
 	{
 		//TODO
-		out(new OnScreenMessage("[AA]::mode set to CSAA"));
+		out(new OnScreenMessage("[AA]::mode set to CSAA -> not supported yet"));
 	}
 	else if (!in.compare("FSAA"))
 	{
 		//TODO
-		out(new OnScreenMessage("[AA]::mode set to FSAA"));
+		out(new OnScreenMessage("[AA]::mode set to FSAA -> not supported yet"));
 	}
 	else if (!in.compare("MSAA"))
 	{
@@ -199,5 +297,16 @@ void OnScreenConsole::interpreteInput(std::string input)
 	{
 		if (in != "")
 			out(new OnScreenMessage("unknown command"));
+	}
+}
+
+
+void OnScreenConsole::proposal(std::string s)
+{
+	static int i = 0;
+	if (s.find("HINT") != std::string::npos)
+	{
+		current_input->message = std::string("$>HINT ") + target_strings[i++] + " ";
+		if (i >= 5)i = 0;
 	}
 }

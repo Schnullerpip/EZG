@@ -1,4 +1,6 @@
 #pragma once
+#include <vector>
+
 class EventFeedback
 {
 public:
@@ -9,6 +11,8 @@ public:
 	bool quitgame = true;
 	//antialiasing specific
 	int number_samples = 1;
+
+	std::vector<std::pair<int, int>> hints;
 	/*-------------------------------------*/
 
 	//methods

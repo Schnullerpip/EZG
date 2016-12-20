@@ -33,6 +33,7 @@ EventFeedback feedback;
 // The MAIN function, from here we start the application and run the game loop
 int main()
 {
+
 	GLFWwindow* window;
 	do
 	{
@@ -49,6 +50,12 @@ int main()
 		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 		glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 		glfwWindowHint(GLFW_SAMPLES, feedback.number_samples);
+
+		for (auto p : feedback.hints)
+		{
+			glHint(p.first, p.second);
+		}
+		feedback.hints.clear();
 
 		// Create a GLFWwindow object that we can use for GLFW's functions
 		window = glfwCreateWindow(WIDTH, HEIGHT, "LearnOpenGL", nullptr, nullptr);
@@ -110,10 +117,12 @@ int main()
 		}
 		// Terminate GLFW, clearing any resources allocated by GLFW.
 		delete scene;
-		glfwTerminate();
+		//glfwTerminate();
+		glfwDestroyWindow(window);
 	} while (!feedback.quitgame);
 
 
+	glfwTerminate();
 	return 0;
 }
 

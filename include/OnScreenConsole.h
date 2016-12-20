@@ -16,12 +16,14 @@ class OnScreenConsole : public InputListener
 	EventFeedback* feedback;
 
 	OnScreenMessage* current_input = nullptr;
-	std::string last_command = "";
+	std::string last_command = "$>";
 	bool insert_mode = false;
 	void interpreteInput(std::string s);
+	void proposal(std::string s);
 	std::string clear();
 public:
 	void out(OnScreenMessage* msg = nullptr);
+	void out(std::string message);
 	void update(float deltatime);
 	void in();
 	OnScreenConsole(float ki, Input_Handler* input, EventFeedback* fb, int window_width, int window_height);
