@@ -2,8 +2,9 @@
 #include "Input_handler.h"
 #include <GLFW/glfw3.h>
 
-const int num_targets = 5;
+const int num_targets = 6;
 int targets[num_targets] = {
+	GL_MULTISAMPLE_FILTER_HINT_NV,
 	GL_LINE_SMOOTH_HINT,
 	GL_PERSPECTIVE_CORRECTION_HINT,
 	GL_POINT_SMOOTH_HINT,
@@ -12,6 +13,7 @@ int targets[num_targets] = {
 };
 
 const char* target_strings[num_targets] = {
+	"GL_MULTISAMPLE_FILTER_HINT_NV",
 	"GL_LINE_SMOOTH_HINT",
 	"GL_PERSPECTIVE_CORRECTION_HINT",
 	"GL_POINT_SMOOTH_HINT",
