@@ -2,7 +2,7 @@
 
 
 
-KD_Tree::KD_Tree()
+KD_Tree::KD_Tree(unsigned dimension):k(dimension)
 {
 }
 
