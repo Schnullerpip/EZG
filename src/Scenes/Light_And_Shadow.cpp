@@ -48,14 +48,22 @@ Light_And_Shadow::Light_And_Shadow(Input_Handler* i, EventFeedback* fb)
 	texture.push_back(new Texture("images/grass.jpg"));
 	texture.push_back(new Texture("images/grass_NRM.png"));
 
+	Cube* floor = new Cube(shader[3], glm::vec3(0, -0.2, 0), 100.f, 0.4f, 100.f);
+	Cube* highest_cube = new Cube(shader[3], glm::vec3(0,20,0), 5, 5, 5);
+	Cube* cube2 = new Cube(shader[3], glm::vec3(10,10,0), 10, 5, 10);
+	Cube* wall = new Cube(shader[3], glm::vec3(-50,0,0), 0.4f, 50, 100);
+	Cube* cube4 = new Cube(shader[3], glm::vec3(0,10,10), glm::vec3(-0.5f, 0.5f, 0.5f));
+	Cube* cube5 = new Cube(shader[3], glm::vec3(-5,10,5), glm::vec3(-0.5f, 0.5f, 0.5f));
+	Cube* cube6 = new Cube(shader[3], glm::vec3(-5, 20, 30), glm::vec3(-0.5f, 0.5f, 0.5f));
+
 	//objects
-	shape.push_back(new Cube(shader[3], glm::vec3(0,-0.2,0), 100.f, 0.4f, 100.f));
-	shape.push_back(new Cube(shader[3], glm::vec3(0,20,0), 5, 5, 5));
-	shape.push_back(new Cube(shader[3], glm::vec3(10,10,0), 10, 5, 10));
-	shape.push_back(new Cube(shader[3], glm::vec3(-50,0,0), 0.4f, 50, 100));
-	shape.push_back(new Cube(shader[3], glm::vec3(0,10,10), glm::vec3(-0.5f, 0.5f, 0.5f)));
-	shape.push_back(new Cube(shader[3], glm::vec3(-5,10,5), glm::vec3(-0.5f, 0.5f, 0.5f)));
-	shape.push_back(new Cube(shader[3], glm::vec3(-5, 20, 30), glm::vec3(-0.5f, 0.5f, 0.5f)));
+	shape.push_back(floor);
+	shape.push_back(highest_cube);
+	//shape.push_back(cube2);
+	//shape.push_back(wall);
+	//shape.push_back(cube4);
+	//shape.push_back(cube5);
+	//shape.push_back(cube6);
 
 	//lights
 	light.push_back(new Light(shader[1], glm::vec3(6, 5.5, 5)));
@@ -63,21 +71,21 @@ Light_And_Shadow::Light_And_Shadow(Input_Handler* i, EventFeedback* fb)
 	//start position for camera
 	cam.pos = glm::vec3(5, 20, 50);
 
-	shape[0]->texture = texture[4];
-	shape[1]->texture = texture[2];
-	shape[2]->texture = texture[2];
-	shape[3]->texture = texture[0];
-	shape[4]->texture = texture[0];
-	shape[5]->texture = texture[2];
-	shape[6]->texture = texture[0];
+	floor->texture = texture[4];
+	highest_cube->texture = texture[2];
+	cube2->texture = texture[2];
+	wall->texture = texture[0];
+	cube4->texture = texture[0];
+	cube5->texture = texture[2];
+	cube6->texture = texture[0];
 
-	shape[0]->normalMap = texture[5];
-	shape[1]->normalMap = texture[3];
-	shape[2]->normalMap = texture[3];
-	shape[3]->normalMap = texture[1];
-	shape[4]->normalMap = texture[1];
-	shape[5]->normalMap = texture[3];
-	shape[6]->normalMap = texture[1];
+	floor->normalMap = texture[5];
+	highest_cube->normalMap = texture[3];
+	cube2->normalMap = texture[3];
+	wall->normalMap = texture[1];
+	cube4->normalMap = texture[1];
+	cube5->normalMap = texture[3];
+	cube6->normalMap = texture[1];
 
 
 	//initialize the OnScreenConsole
@@ -86,6 +94,34 @@ Light_And_Shadow::Light_And_Shadow(Input_Handler* i, EventFeedback* fb)
 	std::stringstream ss;
 	ss << "MSAA -> using " << feedback->number_samples << " samples";
 	console->out(new OnScreenMessage(ss.str()));
+
+	//initialize the KD_Tree
+	kdt = new KD_Tree(3, shape);
+	boundingBoxRepresentation = new Cube*[kdt->Size()];
+
+	ss.clear();
+	ss << "[Scene]::Initialized KD_Tree -> size: " << kdt->Size();
+	console->out(ss.str());
+}
+
+
+void renderBB_r(Shape* cube, Camera* cam, Node* node)
+{
+	cam->model_translation(node->bbox.getPosition());
+	cam->apply_to(cube->shader);
+	cube->draw();
+
+	if (node->left)
+		renderBB_r(cube, cam, node->left);
+	if (node->right)
+		renderBB_r(cube, cam, node->right);
+}
+
+void renderBB(Shape* cube, Camera* cam, Node* node)
+{
+	glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+	renderBB_r(cube, cam, node);
+	glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 }
 
 void Light_And_Shadow::render(GLfloat deltaTime) {
@@ -96,6 +132,7 @@ void Light_And_Shadow::render(GLfloat deltaTime) {
 	cam.view();
 	cam.projection_p(800,600);
 
+	//render the light sources
 	for (auto& l : light) { //only one though
 		if (light_follow) {
 			//set light ten units infront of the camera
@@ -110,13 +147,13 @@ void Light_And_Shadow::render(GLfloat deltaTime) {
 		l->render();
 	}
 
+	//render the primitives
 	int i;
 	for ( i = 0; i < shape.size(); ++i)
 	{
 		cam.model_translation(shape[i]->getPosition());
 		cam.apply_to(shape[i]->shader);
-		if(increase_normal_effect || decrease_normal_effect)
-			glUniform1f(glGetUniformLocation(shape[i]->shader->Program, "bumpFactor"), bump_factor);
+		glUniform1f(glGetUniformLocation(shape[i]->shader->Program, "bumpFactor"), bump_factor);
 
 		light[0]->apply_to(shape[i]->shader);
 		glActiveTexture(GL_TEXTURE0);
@@ -129,23 +166,21 @@ void Light_And_Shadow::render(GLfloat deltaTime) {
 		glBindTexture(GL_TEXTURE_CUBE_MAP, light[0]->getDepthCubeMap());
 		shape[i]->draw();
 	}
+
+	//render the bounding boxes
+	renderBB(boundingBoxRepresentation, &cam, kdt->Root());
+
 	console->update(deltaTime);
 }
 
 void Light_And_Shadow::update(GLfloat deltaTime, EventFeedback* feedback) {
+	if (console->isInInsertMode())return;
 	std::string message;
 	std::stringstream ss;
 
-	if (console->isInInsertMode())return;
 	light_follow = input->is_pressed(GLFW_KEY_SPACE, false);
 	increase_normal_effect = input->is_pressed(GLFW_KEY_K, false);
 	decrease_normal_effect = input->is_pressed(GLFW_KEY_J, false) && !increase_normal_effect;
-
-	//check if the game should restart -> for example after configuring antialiasing properties (new context needed)
-	//if (feedback->restart = input->is_pressed(GLFW_KEY_ENTER))
-	//{
-	//	feedback->quitgame = false;
-	//}
 
 	//check if normalmap specific user input appeared
 	if (increase_normal_effect)

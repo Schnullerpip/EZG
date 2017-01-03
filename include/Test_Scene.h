@@ -18,6 +18,5 @@ public:
 
 	std::map<GLchar, Character> Characters;
 	GLuint VAO, VBO;
-	void doIt(std::string text, GLfloat x, GLfloat y, GLfloat scale, glm::vec3 color, int WIDTH, int HEIGHT, Shader*) const;
 };
 

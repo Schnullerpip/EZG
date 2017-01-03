@@ -2,14 +2,17 @@
 #include "Scene.h"
 #include "Input_Handler.h"
 #include "OnScreenConsole.h"
+#include "KD_Tree.h"
+#include "Cube.h"
 
 class Light_And_Shadow : public Scene
 {
 protected:
-	virtual void init(int window_width, int window_height, const char* title = "")override;
+	void init(int window_width, int window_height, const char* title = "")override;
 	Input_Handler* input;
-	Shape* test;
 	OnScreenConsole* console;
+	KD_Tree* kdt;
+	std::vector<Cube*> boundingBoxRepresentation;
 public:
 	Light_And_Shadow(Input_Handler* i, EventFeedback* fb);
 	virtual void render(GLfloat deltaTime)override;

@@ -14,6 +14,7 @@ protected:
 	std::vector<GLfloat> vertices;
 public:
 	GLuint VAO;
+	std::vector<GLfloat> *getVertices();
 	glm::vec3 position_global;
 	glm::vec4 rotation;
 	glm::vec4 scalation;
@@ -35,3 +36,7 @@ public:
 	}
 };
 
+inline std::vector<GLfloat>* Shape::getVertices()
+{
+	return &vertices;
+}
