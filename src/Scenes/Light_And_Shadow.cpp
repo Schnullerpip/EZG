@@ -63,19 +63,19 @@ Light_And_Shadow::Light_And_Shadow(Input_Handler* i, EventFeedback* fb)
 	Cube* floor =		new Cube(shader[3], glm::vec3(0, 0, -15), 5.f, 5.f, 1.f);
 	Cube* highest_cube =new Cube(shader[3], glm::vec3(0,0,-10), 1, 1, 1);
 	Cube* unit_cube =	new Cube(shader[3], glm::vec3(0,0,0), 1, 1, 1);
+	Cube* cube2 =		new Cube(shader[3], glm::vec3(10,0,-10), 1, 2, 1);
+	Cube* wall =		new Cube(shader[3], glm::vec3(-10,0,0), 0.4f, 8, 1);
 
-	Cube* cube2 =		new Cube(shader[3], glm::vec3(10,40,-30), 10, 2, 8);
-	Cube* wall =		new Cube(shader[3], glm::vec3(-50,0,-20), 0.4f, 8, 1);
 	Cube* cube5 = new Cube(shader[3], glm::vec3(-5,10,5), glm::vec3(-0.5f, 0.5f, 0.5f));
 	Cube* cube6 = new Cube(shader[3], glm::vec3(-5, 20, 30), glm::vec3(-0.5f, 0.5f, 0.5f));
 
 	//objects
 	shape.push_back(floor);
 	shape.push_back(highest_cube);
-	//shape.push_back(cube2);
-	//shape.push_back(wall);
+	shape.push_back(cube2);
+	shape.push_back(wall);
 	shape.push_back(unit_cube);
-	//shape.push_back(cube5);
+	shape.push_back(cube5);
 	//shape.push_back(cube6);
 
 	//lights
@@ -123,12 +123,15 @@ Light_And_Shadow::Light_And_Shadow(Input_Handler* i, EventFeedback* fb)
 
 void renderBB(std::vector<Cube*>& cubes, Camera* cam)
 {
+	glm::vec3 color(0.1f, 0.1f, 0.1f);
 	glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 	/*render all the boundingbox representations*/
 	for (auto bb : cubes)
 	{
 		cam->model_translation(bb->getPosition());
 		cam->apply_to(bb->shader);
+		glUniform3f(glGetUniformLocation(bb->shader->Program, "lightColor"),  color.x, color.y, color.z);
+		color.x += 0.05; color.y += 0.05; color.z += 0.05;
 		bb->draw();
 	}
 	

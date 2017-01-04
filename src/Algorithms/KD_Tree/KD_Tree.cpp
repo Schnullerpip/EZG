@@ -133,9 +133,6 @@ Node* Node::build(std::vector<TriangleContainer*> triangles, int depth, KD_Tree*
 		}
 	}
 
-	//prepare the child-Nodes
-	left = new Node();
-	right = new Node();
 
 	//now decide whether to keep on subdividing into further bounding boxes and nodes or to stop
 	//if both left and right are almost the same triangles break the recursion
@@ -143,14 +140,17 @@ Node* Node::build(std::vector<TriangleContainer*> triangles, int depth, KD_Tree*
 	//float matches_in_percent_right = (float)matches / triangles_right.size();
 	if (triangles_left.size() >= 12 && triangles_right.size() >= 12)
 	{
+		//prepare the child-Nodes
+		left = new Node();
+		right = new Node();
 		//recurse down left and right
 		left->build(triangles_left, depth + 1, kd_tree);
 		right->build(triangles_right, depth + 1, kd_tree);
 	}
-	else
+	else // 
 	{
-		left->triangles = std::vector<TriangleContainer*>();
-		right->triangles = std::vector<TriangleContainer*>();
+		//left->triangles = std::vector<TriangleContainer*>();
+		//right->triangles = std::vector<TriangleContainer*>();
 	}
 	return this;
 }
