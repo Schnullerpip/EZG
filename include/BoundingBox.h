@@ -17,6 +17,17 @@ public:
 	int longestAxis()const;
 	glm::vec3 getPosition()const;
 
+	float Width()const;
+	float Height()const;
+	float Depth()const;
+
+	float FromX()const;
+	float FromY()const;
+	float FromZ()const;
+	float ToX()const;
+	float ToY()const;
+	float ToZ()const;
+
 
 	~BoundingBox();
 };

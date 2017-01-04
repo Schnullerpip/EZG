@@ -18,5 +18,6 @@ public:
 	virtual void render(GLfloat deltaTime)override;
 	virtual void update(GLfloat deltaTime, EventFeedback* feedback = nullptr)override;
 	~Light_And_Shadow();
+	static void Light_And_Shadow::draw_bbox(BoundingBox* boundingbox, Camera* cam, Shader* s);
 };
 

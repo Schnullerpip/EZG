@@ -69,6 +69,11 @@ BoundingBox TriangleContainer::getBoundingBox() const
 	return BoundingBox(lowest_x, highest_x, lowest_y, highest_y, lowest_z, highest_z, primitive->getPosition());
 }
 
+float* TriangleContainer::getTrianglePtr() const
+{
+	return triangle;
+}
+
 Shape* TriangleContainer::getPrimitive() const
 {
 	return primitive;

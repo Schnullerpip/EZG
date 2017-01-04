@@ -1,5 +1,4 @@
 #include "EventFeedback.h"
-#include <iostream>
 
 void EventFeedback::setNumberSamples(int number)
 {

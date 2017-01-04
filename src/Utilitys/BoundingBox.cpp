@@ -8,9 +8,9 @@ void BoundingBox::recalculate()
 	depth = to_z - from_z;
 
 	//recalculate the origin
-	origin.x = width / 2;
-	origin.y = height / 2;
-	origin.z = depth / 2;
+	origin.x = from_x + width / 2;
+	origin.y = from_y + height / 2;
+	origin.z = from_z + depth / 2;
 }
 
 BoundingBox::BoundingBox(float fromX, float toX, float fromY, float toY, float fromZ, float toZ, glm::vec3 origin):from_x(fromX), to_x(toX), from_y(fromY), to_y(toY), from_z(fromZ), to_z(toZ), origin(origin)
@@ -35,9 +35,9 @@ void BoundingBox::expand(BoundingBox& bb)
 }
 
 /*
- * returns 0 - width
- * returns 1 - height
- * returns 2 - depth
+ * returns 0 - width(x)
+ * returns 1 - height(y)
+ * returns 2 - depth(z)
  */
 int BoundingBox::longestAxis() const
 {
@@ -49,6 +49,51 @@ int BoundingBox::longestAxis() const
 glm::vec3 BoundingBox::getPosition() const
 {
 	return origin;
+}
+
+float BoundingBox::Width() const
+{
+	return width;
+}
+
+float BoundingBox::Height() const
+{
+	return height;
+}
+
+float BoundingBox::Depth() const
+{
+	return depth;
+}
+
+float BoundingBox::FromX() const
+{
+	return from_x;
+}
+
+float BoundingBox::FromY() const
+{
+	return from_y;
+}
+
+float BoundingBox::FromZ() const
+{
+	return from_z;
+}
+
+float BoundingBox::ToX() const
+{
+	return to_x;
+}
+
+float BoundingBox::ToY() const
+{
+	return to_y;
+}
+
+float BoundingBox::ToZ() const
+{
+	return to_z;
 }
 
 BoundingBox::~BoundingBox()
