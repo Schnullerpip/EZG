@@ -30,7 +30,7 @@ public:
  */
 struct Node
 {
-	BoundingBox bbox;
+	BoundingBox* bbox = nullptr;
 	Node* left = nullptr;
 	Node* right = nullptr;
 	std::vector<TriangleContainer*> triangles;
@@ -41,6 +41,7 @@ struct Node
 
 	virtual ~Node()
 	{
+		delete bbox;
 		if(left)
 			delete left;
 		if(right)

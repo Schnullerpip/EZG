@@ -13,7 +13,7 @@ public:
 	BoundingBox() :BoundingBox(0, 0, 0, 0, 0, 0, glm::vec3(0, 0, 0)) {}
 	BoundingBox(float fromX, float toX, float fromY, float toY, float fromZ, float toZ, glm::vec3 origin);
 
-	void expand(BoundingBox& bb);
+	void expand(BoundingBox* bb);
 	int longestAxis()const;
 	glm::vec3 getPosition()const;
 

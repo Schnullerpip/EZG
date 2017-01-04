@@ -19,7 +19,7 @@ public:
 	float getY(float* triangle) const;
 	float getZ(float* triangle) const;
 
-	BoundingBox	getBoundingBox()const;
+	BoundingBox* getBoundingBox()const;
 	float* getTrianglePtr()const;
 	Shape* getPrimitive()const;
 	/**

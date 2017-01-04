@@ -18,17 +18,17 @@ BoundingBox::BoundingBox(float fromX, float toX, float fromY, float toY, float f
 	recalculate();
 }
 
-void BoundingBox::expand(BoundingBox& bb)
+void BoundingBox::expand(BoundingBox* bb)
 {
 	//expand the bounds - if neccessary replace the existing bounds by the new bb one's
-	from_x = (bb.from_x < from_x) ? bb.from_x : from_x;
-	to_x = (bb.to_x > to_x) ? bb.to_x : to_x;
+	from_x = (bb->from_x < from_x) ? bb->from_x : from_x;
+	to_x = (bb->to_x > to_x) ? bb->to_x : to_x;
 
-	from_y = (bb.from_y < from_y) ? bb.from_y : from_y;
-	to_y = (bb.to_y > to_y) ? bb.to_y : to_y;
+	from_y = (bb->from_y < from_y) ? bb->from_y : from_y;
+	to_y = (bb->to_y > to_y) ? bb->to_y : to_y;
 
-	from_z = (bb.from_z < from_z) ? bb.from_z : from_z;
-	to_z = (bb.to_z > to_z) ? bb.to_z : to_z;
+	from_z = (bb->from_z < from_z) ? bb->from_z : from_z;
+	to_z = (bb->to_z > to_z) ? bb->to_z : to_z;
 
 	//recalculate width height length
 	recalculate(); 

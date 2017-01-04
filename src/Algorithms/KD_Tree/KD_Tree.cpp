@@ -50,7 +50,8 @@ TC_Getter getters[] = {
 Node* Node::build(std::vector<TriangleContainer*> triangles, int depth, KD_Tree* kd_tree)
 {
 	kd_tree->incrSize();
-	bbox = BoundingBox();
+	this->triangles = triangles;
+	bbox = new BoundingBox();
 
 	if (triangles.size() == 0) return this; //return an empty node
 
@@ -65,43 +66,41 @@ Node* Node::build(std::vector<TriangleContainer*> triangles, int depth, KD_Tree*
 		return this;
 	}
 
-	//get a bounding box, that surrounds all the triangles - also count how many primitives are inside the bounding box
-	Shape* last = nullptr;
-	int prim_count = 0;
+	//get a bounding box, that surrounds all the triangles
 	for (auto t : triangles) {
-		bbox.expand(t->getBoundingBox());
-		if (last != t->getPrimitive())
-		{
-			++prim_count;
-			last = t->getPrimitive();
-		}
+		bbox->expand(t->getBoundingBox());
 	}
 
 	//the longest axis inside the boundig box? we will split on this axis!
-	int split_axis = bbox.longestAxis();
+	int split_axis = bbox->longestAxis();
 
 
 	//Get the right coordinate values for the split-axis respectively (if split on xAxis -> get all the x values)
+	//- also count how many primitives are inside the bounding box
 	std::set<float>* values = new std::set<float>();
-	std::set<Shape*>* pointers = new std::set<Shape*>();
+	int prim_count = 0;
+
+	Shape* last = nullptr;
 	auto g = getters[split_axis];
+
 	for (auto t : triangles) {
-		pointers->insert(t->getPrimitive());
+		if (last != t->getPrimitive()) { ++prim_count; last = t->getPrimitive(); }
 		values->insert((t->*g)(t->A()));
 		values->insert((t->*g)(t->B()));
 		values->insert((t->*g)(t->C()));
+		std::cout << "[KD_Tree.cpp]::build -> triangle: (" << prim_count << ") v(" << (t->*g)(t->A()) << ", " << (t->*g)(t->B()) << ", " << (t->*g)(t->C()) << ")" << std::endl;
 	}
 	//get the median of the x||y||z-coordinates
 	std::vector<float>* vec_singles = new std::vector<float>(values->begin(), values->end());
 	nth_element(vec_singles->begin(),  vec_singles->begin() + (vec_singles->size() / 2), vec_singles->end());
 	float median = (*vec_singles)[vec_singles->size() / 2];//this is the median element on the representive split axis
 
-	delete values;
-	delete vec_singles;
+	//TODO 
+	//delete values;
+	//delete vec_singles;
 
 	std::vector<TriangleContainer*> triangles_left;
 	std::vector<TriangleContainer*> triangles_right;
-
 
 	int matches = 0;
 	for (auto t : triangles)
@@ -113,11 +112,11 @@ Node* Node::build(std::vector<TriangleContainer*> triangles, int depth, KD_Tree*
 		isright |= median < b;
 		isright |= median < c;
 
-		isleft |=  median > a;
-		isleft |=  median > b;
-		isleft |=  median > c;
+		isleft |=  median >= a;
+		isleft |=  median >= b;
+		isleft |=  median >= c;
 
-		//if isleft and isright -> the triangle is split -> give it to both the child nodes
+		//if isleft and isright -> the triangle is split -> give it to both child nodes
 		if (isleft && isright)
 		{
 			triangles_left.push_back(t);
@@ -140,13 +139,13 @@ Node* Node::build(std::vector<TriangleContainer*> triangles, int depth, KD_Tree*
 
 	//now decide whether to keep on subdividing into further bounding boxes and nodes or to stop
 	//if both left and right are almost the same triangles break the recursion
-	float matches_in_percent_left =  (float)matches / triangles_left.size();
-	float matches_in_percent_right = (float)matches / triangles_right.size();
-	if (/*(float)matches/triangles_left.size() < 0.5 && (float)matches/triangles_right.size() < 0.5 &&*/  triangles.size() >= 32)
+	//float matches_in_percent_left =  (float)matches / triangles_left.size();
+	//float matches_in_percent_right = (float)matches / triangles_right.size();
+	if (triangles_left.size() >= 12 && triangles_right.size() >= 12)
 	{
 		//recurse down left and right
-		left = left->build(triangles_left, depth + 1, kd_tree);
-		right = left->build(triangles_right, depth + 1, kd_tree);
+		left->build(triangles_left, depth + 1, kd_tree);
+		right->build(triangles_right, depth + 1, kd_tree);
 	}
 	else
 	{

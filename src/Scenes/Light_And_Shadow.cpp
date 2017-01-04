@@ -18,14 +18,15 @@ void Light_And_Shadow::init(int window_width, int window_height, const char* tit
 }
 
 //helper function for recursively initializing boundingboxrepresentations according to the kd_tree
-void initialize_bbr(std::vector<Cube*>* cubes, Node* node, Shader* s)
+void initialize_bbr(std::vector<Cube*>* cubes, std::vector<BoundingBox*>* bboxes, Node* node, Shader* s)
 {
-	BoundingBox* bb = &node->bbox;
+	if (!node)return;
+	BoundingBox* bb = node->bbox;
+	if (!bb)return;
 	cubes->push_back(new Cube(s, bb->getPosition(), bb->Width(), bb->Height(), bb->Depth()));
-	if (node->left)
-		initialize_bbr(cubes, node->left, s);
-	if (node->right)
-		initialize_bbr(cubes, node->right, s);
+	(*bboxes).push_back(bb);
+	initialize_bbr(cubes, bboxes, node->left, s);
+	initialize_bbr(cubes, bboxes, node->right, s);
 }
 
 Light_And_Shadow::Light_And_Shadow(Input_Handler* i, EventFeedback* fb)
@@ -59,20 +60,21 @@ Light_And_Shadow::Light_And_Shadow(Input_Handler* i, EventFeedback* fb)
 	texture.push_back(new Texture("images/grass.jpg"));
 	texture.push_back(new Texture("images/grass_NRM.png"));
 
-	Cube* floor =		 new Cube(shader[3], glm::vec3(0, 0, 0), 10.f, 5.f, 5.f);
-	Cube* highest_cube = new Cube(shader[3], glm::vec3(0,20,10), 5, 5, 5);
-	Cube* cube2 =		 new Cube(shader[3], glm::vec3(10,40,-10), 10, 5, 10);
-	Cube* wall = new Cube(shader[3], glm::vec3(-50,0,0), 0.4f, 50, 100);
-	Cube* cube4 = new Cube(shader[3], glm::vec3(0,10,10), glm::vec3(-0.5f, 0.5f, 0.5f));
+	Cube* floor =		new Cube(shader[3], glm::vec3(0, 0, -15), 5.f, 5.f, 1.f);
+	Cube* highest_cube =new Cube(shader[3], glm::vec3(0,0,-10), 1, 1, 1);
+	Cube* unit_cube =	new Cube(shader[3], glm::vec3(0,0,0), 1, 1, 1);
+
+	Cube* cube2 =		new Cube(shader[3], glm::vec3(10,40,-30), 10, 2, 8);
+	Cube* wall =		new Cube(shader[3], glm::vec3(-50,0,-20), 0.4f, 8, 1);
 	Cube* cube5 = new Cube(shader[3], glm::vec3(-5,10,5), glm::vec3(-0.5f, 0.5f, 0.5f));
 	Cube* cube6 = new Cube(shader[3], glm::vec3(-5, 20, 30), glm::vec3(-0.5f, 0.5f, 0.5f));
 
 	//objects
 	shape.push_back(floor);
 	shape.push_back(highest_cube);
-	shape.push_back(cube2);
-	shape.push_back(wall);
-	//shape.push_back(cube4);
+	//shape.push_back(cube2);
+	//shape.push_back(wall);
+	shape.push_back(unit_cube);
 	//shape.push_back(cube5);
 	//shape.push_back(cube6);
 
@@ -86,7 +88,7 @@ Light_And_Shadow::Light_And_Shadow(Input_Handler* i, EventFeedback* fb)
 	highest_cube->texture = texture[2];
 	cube2->texture = texture[2];
 	wall->texture = texture[0];
-	cube4->texture = texture[0];
+	unit_cube->texture = texture[0];
 	cube5->texture = texture[2];
 	cube6->texture = texture[0];
 
@@ -94,7 +96,7 @@ Light_And_Shadow::Light_And_Shadow(Input_Handler* i, EventFeedback* fb)
 	highest_cube->normalMap = texture[3];
 	cube2->normalMap = texture[3];
 	wall->normalMap = texture[1];
-	cube4->normalMap = texture[1];
+	unit_cube->normalMap = texture[1];
 	cube5->normalMap = texture[3];
 	cube6->normalMap = texture[1];
 
@@ -108,10 +110,15 @@ Light_And_Shadow::Light_And_Shadow(Input_Handler* i, EventFeedback* fb)
 
 	//initialize the KD_Tree
 	kdt = new KD_Tree(3, shape);
-	initialize_bbr(&boundingBoxRepresentation, kdt->Root(), shader[1]);
+	std::vector<BoundingBox*> bboxes;
+	initialize_bbr(&boundingBoxRepresentation, &bboxes, kdt->Root(), shader[1]);
 	ss.clear();
-	ss << "[Scene]::Initialized KD_Tree -> size: " << kdt->Size();
+	ss << "[Scene]::Initialized KD_Tree -> size: " << kdt->Size() << " -> [";
 	console->out(ss.str());
+	for (auto bb : boundingBoxRepresentation)
+	{
+		std::cout << "(" << bb->getPosition().x << ", " << bb->getPosition().y << ", " << bb->getPosition().z <<  ");\n";
+	}
 }
 
 void renderBB(std::vector<Cube*>& cubes, Camera* cam)
@@ -124,6 +131,7 @@ void renderBB(std::vector<Cube*>& cubes, Camera* cam)
 		cam->apply_to(bb->shader);
 		bb->draw();
 	}
+	
 	glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 }
 
