@@ -12,7 +12,7 @@ protected:
 	Input_Handler* input;
 	OnScreenConsole* console;
 	KD_Tree* kdt;
-	std::vector<Cube*> boundingBoxRepresentation;
+	std::vector<std::pair<Cube*, glm::vec3>> boundingBoxRepresentation;
 public:
 	Light_And_Shadow(Input_Handler* i, EventFeedback* fb);
 	virtual void render(GLfloat deltaTime)override;

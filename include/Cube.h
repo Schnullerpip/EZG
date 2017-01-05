@@ -5,6 +5,7 @@ class Cube : public Shape
 {
 protected:
 public:
+	char* name;
 	Cube():Cube(nullptr) {}
 	Cube(Shader* s, glm::vec3 pos_glo = glm::vec3(0.f, 0.f, 0.f), GLfloat width = 1.f, GLfloat height = 1.f, GLfloat depth = 1.f, glm::vec3 pos_loc = glm::vec3(0.f, 0.f, 0.f));
 	Cube(Shader* s, glm::vec3 pos_glo,

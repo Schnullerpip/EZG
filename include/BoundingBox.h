@@ -8,11 +8,13 @@ class BoundingBox
 	glm::vec3 origin;
 	float width, height, depth;
 	float from_x, to_x, from_y, to_y, from_z, to_z;
-	void recalculate();
 public:
+	int split_axis;
+	float median;
 	BoundingBox() :BoundingBox(0, 0, 0, 0, 0, 0, glm::vec3(0, 0, 0)) {}
 	BoundingBox(float fromX, float toX, float fromY, float toY, float fromZ, float toZ, glm::vec3 origin);
 
+	void recalculate();
 	void expand(BoundingBox* bb);
 	int longestAxis()const;
 	glm::vec3 getPosition()const;
@@ -28,6 +30,12 @@ public:
 	float ToY()const;
 	float ToZ()const;
 
+	void setFromX(float m);
+	void setFromY(float m);
+	void setFromZ(float m);
+	void setToX(float m);
+	void setToY(float m);
+	void setToZ(float m);
 
 	~BoundingBox();
 };

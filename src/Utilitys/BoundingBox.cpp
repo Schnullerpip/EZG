@@ -96,6 +96,36 @@ float BoundingBox::ToZ() const
 	return to_z;
 }
 
+void BoundingBox::setFromX(float m)
+{
+	from_x = m;
+}
+
+void BoundingBox::setFromY(float m)
+{
+	from_y = m;
+}
+
+void BoundingBox::setFromZ(float m)
+{
+	from_z = m;
+}
+
+void BoundingBox::setToX(float m)
+{
+	to_x = m;
+}
+
+void BoundingBox::setToY(float m)
+{
+	to_y = m;
+}
+
+void BoundingBox::setToZ(float m)
+{
+	to_z = m;
+}
+
 BoundingBox::~BoundingBox()
 {
 }

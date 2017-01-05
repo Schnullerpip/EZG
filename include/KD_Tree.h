@@ -37,7 +37,7 @@ struct Node
 
 	Node(){}
 
-	Node* build(std::vector<TriangleContainer*> triangles, int depth, KD_Tree* kd_tree);
+	Node* build(std::vector<TriangleContainer*> triangles, int depth, KD_Tree* kd_tree, BoundingBox* parent = nullptr, bool left_child = false);
 
 	virtual ~Node()
 	{
@@ -47,31 +47,6 @@ struct Node
 		if(right)
 			delete right;
 	}
-
-	//methods
-	//virtual bool smaller(Point) = 0;
-	//virtual Node* generateChildNode(Point p) = 0;
-	//void addLeft(Point p)
-	//{
-	//	if(!left)
-	//		left = generateChildNode(p);
-	//	else 
-	//		left->adopt(p);
-	//}
-
-	//void addRight(Point p)
-	//{
-	//	if (!right)
-	//		right = generateChildNode(p);
-	//	else
-	//		right->adopt(p);
-	//}
-
-	//virtual void adopt(Point p)
-	//{
-	//	if (smaller(p)) addRight(p);
-	//	else addLeft(p);
-	//}
 };
 
 /**

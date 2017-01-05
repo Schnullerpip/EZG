@@ -18,15 +18,16 @@ void Light_And_Shadow::init(int window_width, int window_height, const char* tit
 }
 
 //helper function for recursively initializing boundingboxrepresentations according to the kd_tree
-void initialize_bbr(std::vector<Cube*>* cubes, std::vector<BoundingBox*>* bboxes, Node* node, Shader* s)
+void initialize_bbr(std::vector<std::pair<Cube*, glm::vec3>>* cubes, std::vector<BoundingBox*>* bboxes, Node* node, Shader* s, int depth = 0)
 {
 	if (!node)return;
 	BoundingBox* bb = node->bbox;
 	if (!bb)return;
-	cubes->push_back(new Cube(s, bb->getPosition(), bb->Width(), bb->Height(), bb->Depth()));
+	float c = 0.13 * depth;
+	cubes->push_back(std::make_pair(new Cube(s, bb->getPosition(), bb->Width(), bb->Height(), bb->Depth()), glm::vec3(c, c, c))) ;
 	(*bboxes).push_back(bb);
-	initialize_bbr(cubes, bboxes, node->left, s);
-	initialize_bbr(cubes, bboxes, node->right, s);
+	initialize_bbr(cubes, bboxes, node->left, s, depth +1);
+	initialize_bbr(cubes, bboxes, node->right, s, depth +1);
 }
 
 Light_And_Shadow::Light_And_Shadow(Input_Handler* i, EventFeedback* fb)
@@ -62,12 +63,19 @@ Light_And_Shadow::Light_And_Shadow(Input_Handler* i, EventFeedback* fb)
 
 	Cube* floor =		new Cube(shader[3], glm::vec3(0, 0, -15), 5.f, 5.f, 1.f);
 	Cube* highest_cube =new Cube(shader[3], glm::vec3(0,0,-10), 1, 1, 1);
-	Cube* unit_cube =	new Cube(shader[3], glm::vec3(0,0,0), 1, 1, 1);
 	Cube* cube2 =		new Cube(shader[3], glm::vec3(10,0,-10), 1, 2, 1);
 	Cube* wall =		new Cube(shader[3], glm::vec3(-10,0,0), 0.4f, 8, 1);
+	Cube* unit_cube =	new Cube(shader[3], glm::vec3(10,-2,4), 1, 1, 1);
+	Cube* cube5 =		new Cube(shader[3], glm::vec3(-5,10,5), 0.5, 0.5, 0.5);
 
-	Cube* cube5 = new Cube(shader[3], glm::vec3(-5,10,5), glm::vec3(-0.5f, 0.5f, 0.5f));
 	Cube* cube6 = new Cube(shader[3], glm::vec3(-5, 20, 30), glm::vec3(-0.5f, 0.5f, 0.5f));
+
+	floor->name = "floor";
+	highest_cube->name = "highest_cube";
+	cube2->name = "cube2";
+	wall->name = "wall";
+
+	unit_cube->name = "unit_cube";
 
 	//objects
 	shape.push_back(floor);
@@ -115,24 +123,18 @@ Light_And_Shadow::Light_And_Shadow(Input_Handler* i, EventFeedback* fb)
 	ss.clear();
 	ss << "[Scene]::Initialized KD_Tree -> size: " << kdt->Size() << " -> [";
 	console->out(ss.str());
-	for (auto bb : boundingBoxRepresentation)
-	{
-		std::cout << "(" << bb->getPosition().x << ", " << bb->getPosition().y << ", " << bb->getPosition().z <<  ");\n";
-	}
 }
 
-void renderBB(std::vector<Cube*>& cubes, Camera* cam)
+void renderBB(std::vector<std::pair<Cube*, glm::vec3>>& cubes, Camera* cam)
 {
-	glm::vec3 color(0.1f, 0.1f, 0.1f);
 	glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 	/*render all the boundingbox representations*/
 	for (auto bb : cubes)
 	{
-		cam->model_translation(bb->getPosition());
-		cam->apply_to(bb->shader);
-		glUniform3f(glGetUniformLocation(bb->shader->Program, "lightColor"),  color.x, color.y, color.z);
-		color.x += 0.05; color.y += 0.05; color.z += 0.05;
-		bb->draw();
+		cam->model_translation(bb.first->getPosition());
+		cam->apply_to(bb.first->shader);
+		glUniform3f(glGetUniformLocation(bb.first->shader->Program, "lightColor"),  bb.second.x, bb.second.y, bb.second.z);
+		bb.first->draw();
 	}
 	
 	glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
@@ -213,7 +215,6 @@ void Light_And_Shadow::update(GLfloat deltaTime, EventFeedback* feedback) {
 
 	//apply mouse movement to the camera
 	cam.update_fps_style(deltaTime, input);
-
 }
 
 Light_And_Shadow::~Light_And_Shadow()
