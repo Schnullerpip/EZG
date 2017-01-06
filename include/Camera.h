@@ -75,11 +75,9 @@ public:
 	/*for fps
 	apply mouse movement to the camera
 	@param deltaTime -> ...yeah its deltaTime
-	@param input The -> InputHandler ptr that holds all the information about the mousemovement, we need
+	@param input -> The InputHandler ptr that holds all the information about the mousemovement, we need
 	*/
 	void update_fps_style(GLfloat deltaTime, Input_Handler* input);
-	
-
 
 	Camera();
 	~Camera();

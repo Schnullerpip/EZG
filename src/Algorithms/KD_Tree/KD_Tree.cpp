@@ -20,6 +20,48 @@ Node* KD_Tree::Root() const
 	return root;
 }
 
+Shape* KD_Tree::fireRay(glm::vec3* origin, glm::vec3* direction, glm::vec3* out_collisionpoint) const
+{
+	Ray* ray = new Ray(*origin, *direction);
+	Shape* retVal = visitNodes(root, ray);
+	if(ray->T())
+		*out_collisionpoint = ray->beam(*ray->T());
+	delete ray;
+	return retVal;
+}
+
+Shape* KD_Tree::visitNodes(Node* node, Ray* ray) const
+{
+	if (!node) return nullptr;
+
+	if (node->bbox->hit(ray))
+	{
+		if (!node->left && !node->right)
+		{
+			//inside Leaf!!!
+			//iterate through this nodes triangles and check for intersection
+			for (auto t : node->triangles)
+			{
+				if (t->intersects(ray))
+				{
+					return t->getPrimitive();
+				}
+			}
+		}
+		else
+		{
+			//recurse down
+			Shape* retVal = visitNodes(node->left, ray);
+			if (!retVal)
+			{
+				retVal = visitNodes(node->right, ray);
+			}
+			return retVal;
+		}
+	}
+	return nullptr;
+}
+
 KD_Tree::KD_Tree(unsigned dimension, std::vector<Shape*> shapes):k(dimension)
 {
 	const unsigned offset = 14; //the offset in the cube's vertice data (also includes color, normals etc.)
@@ -152,9 +194,8 @@ Node* Node::build(std::vector<TriangleContainer*> triangles, int depth, KD_Tree*
 	bbox->median = (*vec_singles)[vec_singles->size() / 2];//this is the median element on the representive split axis
 	float median = bbox->median;
 
-	//TODO 
-	//delete values;
-	//delete vec_singles;
+	delete values;
+	delete vec_singles;
 
 	std::vector<TriangleContainer*> triangles_left;
 	std::vector<TriangleContainer*> triangles_right;
@@ -167,6 +208,7 @@ Node* Node::build(std::vector<TriangleContainer*> triangles, int depth, KD_Tree*
 		char* name = cu->name;
 		//according to the split axis, divide the triangles representively (using the member function pointers PTMFs!)
 		float a = (t->*g)(t->A()), b = (t->*g)(t->B()), c = (t->*g)(t->C());
+
 		isright |= median < a;
 		isright |= median < b;
 		isright |= median < c;
@@ -193,13 +235,14 @@ Node* Node::build(std::vector<TriangleContainer*> triangles, int depth, KD_Tree*
 		}
 	}
 
-	//prepare the child-Nodes
-	left = new Node();
-	right = new Node();
 
 	//now decide whether to keep on subdividing into further bounding boxes and nodes or to stop
 	//if only one single primitive participates in the bounding box and it is not too complex, we dnot need to subdivide any further
 	if (prim_count == 1 && triangles.size() <= 12) return this; //the concrete bound for complexity is one single cube (so very simple)
+
+	//prepare the child-Nodes
+	left = new Node();
+	right = new Node();
 	left->build(triangles_left, depth + 1, kd_tree, bbox, true);
 	right->build(triangles_right, depth + 1, kd_tree, bbox, false);
 	return this;

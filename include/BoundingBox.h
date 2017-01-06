@@ -9,7 +9,8 @@ class BoundingBox
 	//the bounds of the triangle
 	glm::vec3 origin;
 	float width, height, depth;
-	float from_x, to_x, from_y, to_y, from_z, to_z;
+	glm::vec3 min, max;
+	glm::vec3 parameters[2];
 public:
 	int split_axis;
 	float median;
@@ -20,7 +21,7 @@ public:
 	void expand(BoundingBox* bb);
 	int longestAxis()const;
 	glm::vec3 getPosition()const;
-	Shape* hit(Ray);
+	bool hit(Ray*) const;
 
 	float Width()const;
 	float Height()const;

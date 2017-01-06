@@ -106,6 +106,93 @@ Point3D TriangleContainer::getMidPoint() const
 	return Point3D(mid_x, mid_y, mid_z);
 }
 
+glm::vec3 toVec(const TriangleContainer* tr, float* t)
+{
+	return glm::vec3(tr->getX(t), tr->getY(t), tr->getZ(t));
+}
+
+#define EPSILON 0.000001
+bool TriangleContainer::hit(Ray* r) const
+{
+	glm::vec3 e1, e2;  //Edge1, Edge2
+	glm::vec3 P, Q, T, V1 = toVec(this, A()), V2 = toVec(this, B()), V3 = toVec(this, C());
+	float det, inv_det, u, v;
+	float t;
+
+	//Find vectors for two edges sharing V1
+	e1 = V2 - V1;
+	e2 = V3 - V1;
+	//Begin calculating determinant - also used to calculate u parameter
+	P = glm::cross(r->Direction(), e2);
+	//if determinant is near zero, ray lies in plane of triangle or ray is parallel to plane of triangle
+	det = glm::dot(e1, P);
+	//NOT CULLING
+	if (det > -EPSILON && det < EPSILON) return false;
+	inv_det = 1.f / det;
+
+	//calculate distance from V1 to ray origin
+	T = r->Origin() - V1;
+
+	//Calculate u parameter and test bound
+	u = inv_det * glm::dot(T, P);
+	//The intersection lies outside of the triangle
+	if (u < 0.f || u > 1.f) return false;
+
+	//Prepare to test v parameter
+	Q = glm::cross(T, e1);
+
+	//Calculate V parameter and test bound
+	v = glm::dot(r->Direction(), e1);
+	//The intersection lies outside of the triangle
+	if (v < 0.f || u + v  > 1.f) return false;
+
+	t = glm::dot(e2, Q) * inv_det;
+
+	if (t > EPSILON) { //ray intersection
+		r->setT(t);
+		return true;
+	}
+
+	// No hit, no win
+	return false;
+}
+bool TriangleContainer::intersects(Ray *ray) const
+{
+	glm::vec3 edge1 = toVec(this, B()) - toVec(this, A());
+    glm::vec3 edge2 = toVec(this, C()) - toVec(this, A());
+    
+    glm::vec3 q = glm::cross(ray->Direction(), edge2);
+    float det = glm::dot(edge1, q);
+    
+    if(det > -EPSILON && det < EPSILON)
+        return false;
+    
+    float inv_det = 1.0f/det;
+    
+    glm::vec3 s = ray->Origin() - toVec(this, A());
+    
+    float u = glm::dot(s, q) * inv_det;
+    
+    if(u < 0.0f || u > 1.0f)
+        return false;
+    
+    glm::vec3 r = glm::cross(s, edge1);
+    
+    float v = glm::dot(ray->Direction(), r) * inv_det;
+    if(v < 0.0f || u + v > 1.0f)
+        return false;
+    
+    float t = glm::dot(edge2, r) * inv_det;
+    
+    if(t > EPSILON)
+    {
+        ray->setT(t);
+        return true;
+    }
+    
+    return false;
+}
+
 TriangleContainer::~TriangleContainer()
 {
 }

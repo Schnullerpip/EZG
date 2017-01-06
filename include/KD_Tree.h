@@ -16,10 +16,13 @@ class KD_Tree
 	unsigned k;
 	size_t size = 0;
 	Node* root;
+	Shape* visitNodes(Node*, Ray*) const;
 public:
 	size_t Size()const;
 	void incrSize();
 	Node* Root()const;
+
+	Shape* fireRay(glm::vec3* origin, glm::vec3* direction, glm::vec3* out_collisionpoint) const;
 
 	KD_Tree(unsigned dimension, std::vector<Shape*> shapes);
 	~KD_Tree();

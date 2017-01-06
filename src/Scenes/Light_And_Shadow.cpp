@@ -123,6 +123,8 @@ Light_And_Shadow::Light_And_Shadow(Input_Handler* i, EventFeedback* fb)
 	ss.clear();
 	ss << "[Scene]::Initialized KD_Tree -> size: " << kdt->Size();
 	console->out(ss.str());
+
+
 }
 
 void renderBB(std::vector<std::pair<Cube*, glm::vec3>>& cubes, Camera* cam)
@@ -197,6 +199,24 @@ void Light_And_Shadow::update(GLfloat deltaTime, EventFeedback* feedback) {
 	light_follow = input->is_pressed(GLFW_KEY_SPACE, false);
 	increase_normal_effect = input->is_pressed(GLFW_KEY_K, false);
 	decrease_normal_effect = input->is_pressed(GLFW_KEY_J, false) && !increase_normal_effect;
+
+	if (input->is_pressed(GLFW_KEY_R))
+	{
+		//fire a ray
+		glm::vec3 collisoin_point;
+		Shape* target =  kdt->fireRay(&cam.pos, &cam.front, &collisoin_point);
+		if (target)
+		{
+			ss << "[Update]::RayCast -> hit target " << target << " (" << collisoin_point.x << ", " << collisoin_point.y << ", " << collisoin_point.z << ")";
+		}
+		else
+		{
+			ss << "[Update]::RayCast -> no hit detected";
+		}
+			console->out(ss.str());
+			ss.str("");//reset the stream 
+	}
+
 
 	//check if normalmap specific user input appeared
 	if (increase_normal_effect)

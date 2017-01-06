@@ -31,6 +31,8 @@ public:
 	float TriangleContainer::most(float(genericGetter)(float*), bool(*generic_comparision)(float a, float b), float offset = 0)const;
 	bool equals(TriangleContainer* tc) const;
 	Point3D getMidPoint()const;
+	bool hit(Ray* r)const;
+	bool intersects(Ray*) const;
 	TriangleContainer(float* triangleLocation, Shape* prim, int offset = 0);
 	~TriangleContainer();
 };

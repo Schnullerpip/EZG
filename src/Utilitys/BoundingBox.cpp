@@ -3,32 +3,53 @@
 void BoundingBox::recalculate()
 {
 	//recalculate the bounds
-	width = to_x - from_x;
-	height = to_y - from_y;
-	depth = to_z - from_z;
+	width = max.x - min.x;
+	height = max.y - min.y;
+	depth = max.z - min.z;
 
 	//recalculate the origin
-	origin.x = from_x + width / 2;
-	origin.y = from_y + height / 2;
-	origin.z = from_z + depth / 2;
+	origin.x = min.x + width / 2;
+	origin.y = min.y + height / 2;
+	origin.z = min.z + depth / 2;
+
+	//recalculate the min and max points (important for intersection testing)
+	min.x = min.x;
+	min.y = min.y;
+	min.z = min.z;
+	max.x = max.x;
+	max.y = max.y;
+	max.z = max.z;
 }
 
-BoundingBox::BoundingBox(float fromX, float toX, float fromY, float toY, float fromZ, float toZ, glm::vec3 origin):from_x(fromX), to_x(toX), from_y(fromY), to_y(toY), from_z(fromZ), to_z(toZ), origin(origin)
+BoundingBox::BoundingBox(float fromX, float toX, float fromY, float toY, float fromZ, float toZ, glm::vec3 origin)
 {
+	min.x = fromX;
+	min.y = fromY;
+	min.z = fromZ;
+
+	max.x = toX;
+	max.y = toY;
+	max.z = toZ;
+
+	parameters[0] = min;
+	parameters[1] = max;
+
+	this->origin = origin;
+
 	recalculate();
 }
 
 void BoundingBox::expand(BoundingBox* bb)
 {
 	//expand the bounds - if neccessary replace the existing bounds by the new bb one's
-	from_x = (bb->from_x < from_x) ? bb->from_x : from_x;
-	to_x = (bb->to_x > to_x) ? bb->to_x : to_x;
+	min.x = (bb->min.x < min.x) ? bb->min.x : min.x;
+	max.x = (bb->max.x > max.x) ? bb->max.x : max.x;
 
-	from_y = (bb->from_y < from_y) ? bb->from_y : from_y;
-	to_y = (bb->to_y > to_y) ? bb->to_y : to_y;
+	min.y = (bb->min.y < min.y) ? bb->min.y : min.y;
+	max.y = (bb->max.y > max.y) ? bb->max.y : max.y;
 
-	from_z = (bb->from_z < from_z) ? bb->from_z : from_z;
-	to_z = (bb->to_z > to_z) ? bb->to_z : to_z;
+	min.z = (bb->min.z < min.z) ? bb->min.z : min.z;
+	max.z = (bb->max.z > max.z) ? bb->max.z : max.z;
 
 	//recalculate width height length
 	recalculate(); 
@@ -51,9 +72,49 @@ glm::vec3 BoundingBox::getPosition() const
 	return origin;
 }
 
-Shape* BoundingBox::hit(Ray)
+bool BoundingBox::hit(Ray* r) const
 {
-	return nullptr;
+  float tmin, tmax, tymin, tymax, tzmin, tzmax;
+    
+    if (r->Direction().x >= 0) {
+        tmin = (min.x - r->Origin().x) / r->Direction().x;
+        tmax = (max.x - r->Origin().x) / r->Direction().x;
+    }
+    else {
+        tmin = (max.x - r->Origin().x) / r->Direction().x;
+        tmax = (min.x - r->Origin().x) / r->Direction().x;
+    }
+    if (r->Direction().y >= 0) {
+        tymin = (min.y - r->Origin().y) / r->Direction().y;
+        tymax = (max.y - r->Origin().y) / r->Direction().y;
+    }
+    else {
+        tymin = (max.y - r->Origin().y) / r->Direction().y;
+        tymax = (min.y - r->Origin().y) / r->Direction().y;
+    }
+    if ( (tmin > tymax) || (tymin > tmax) )
+        return false;
+    
+    if (tymin > tmin)
+        tmin = tymin;
+    if (tymax < tmax)
+        tmax = tymax;
+    if (r->Direction().z >= 0) {
+        tzmin = (min.z - r->Origin().z) / r->Direction().z;
+        tzmax = (max.z - r->Origin().z) / r->Direction().z;
+    }
+    else {
+        tzmin = (max.z - r->Origin().z) / r->Direction().z;
+        tzmax = (min.z - r->Origin().z) / r->Direction().z;
+    }
+    if ( (tmin > tzmax) || (tzmin > tmax) )
+        return false;
+    if (tzmin > tmin)
+        tmin = tzmin;
+    if (tzmax < tmax)
+        tmax = tzmax;
+    
+    return ( (tmin < r->getTMax()) && (tmax > 0) );
 }
 
 float BoundingBox::Width() const
@@ -73,62 +134,62 @@ float BoundingBox::Depth() const
 
 float BoundingBox::FromX() const
 {
-	return from_x;
+	return min.x;
 }
 
 float BoundingBox::FromY() const
 {
-	return from_y;
+	return min.y;
 }
 
 float BoundingBox::FromZ() const
 {
-	return from_z;
+	return min.z;
 }
 
 float BoundingBox::ToX() const
 {
-	return to_x;
+	return max.x;
 }
 
 float BoundingBox::ToY() const
 {
-	return to_y;
+	return max.y;
 }
 
 float BoundingBox::ToZ() const
 {
-	return to_z;
+	return max.z;
 }
 
 void BoundingBox::setFromX(float m)
 {
-	from_x = m;
+	min.x = m;
 }
 
 void BoundingBox::setFromY(float m)
 {
-	from_y = m;
+	min.y = m;
 }
 
 void BoundingBox::setFromZ(float m)
 {
-	from_z = m;
+	min.z = m;
 }
 
 void BoundingBox::setToX(float m)
 {
-	to_x = m;
+	max.x = m;
 }
 
 void BoundingBox::setToY(float m)
 {
-	to_y = m;
+	max.y = m;
 }
 
 void BoundingBox::setToZ(float m)
 {
-	to_z = m;
+	max.z = m;
 }
 
 BoundingBox::~BoundingBox()
