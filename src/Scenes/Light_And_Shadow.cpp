@@ -82,8 +82,8 @@ Light_And_Shadow::Light_And_Shadow(Input_Handler* i, EventFeedback* fb)
 	shape.push_back(highest_cube);
 	shape.push_back(cube2);
 	shape.push_back(wall);
-	shape.push_back(unit_cube);
-	shape.push_back(cube5);
+	//shape.push_back(unit_cube);
+	//shape.push_back(cube5);
 	//shape.push_back(cube6);
 
 	//lights
@@ -121,7 +121,7 @@ Light_And_Shadow::Light_And_Shadow(Input_Handler* i, EventFeedback* fb)
 	std::vector<BoundingBox*> bboxes;
 	initialize_bbr(&boundingBoxRepresentation, &bboxes, kdt->Root(), shader[1]);
 	ss.clear();
-	ss << "[Scene]::Initialized KD_Tree -> size: " << kdt->Size() << " -> [";
+	ss << "[Scene]::Initialized KD_Tree -> size: " << kdt->Size();
 	console->out(ss.str());
 }
 

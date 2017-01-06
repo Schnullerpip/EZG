@@ -1,7 +1,9 @@
 #pragma once
 #include <glm/glm.hpp>
+#include "Ray.h"
 
 /**A container pointing to 1 to n Triangles, also storing the bound's lengths and so on*/
+class Shape;
 class BoundingBox
 {
 	//the bounds of the triangle
@@ -18,6 +20,7 @@ public:
 	void expand(BoundingBox* bb);
 	int longestAxis()const;
 	glm::vec3 getPosition()const;
+	Shape* hit(Ray);
 
 	float Width()const;
 	float Height()const;

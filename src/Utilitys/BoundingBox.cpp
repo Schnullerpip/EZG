@@ -51,6 +51,11 @@ glm::vec3 BoundingBox::getPosition() const
 	return origin;
 }
 
+Shape* BoundingBox::hit(Ray)
+{
+	return nullptr;
+}
+
 float BoundingBox::Width() const
 {
 	return width;

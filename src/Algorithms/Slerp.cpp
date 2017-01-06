@@ -1,5 +1,4 @@
 #include "Slerp.h"
-#include <iostream>
 
 Slerp::Slerp()
 {

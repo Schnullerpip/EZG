@@ -1,7 +1,7 @@
 #pragma once
 #include "BoundingBox.h"
 #include "Shape.h"
-#include "../Point3D.h"
+#include "Point3D.h"
 
 class TriangleContainer
 {

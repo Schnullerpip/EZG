@@ -178,11 +178,6 @@ Node* Node::build(std::vector<TriangleContainer*> triangles, int depth, KD_Tree*
 		//if isleft and isright -> the triangle is split -> give it to both child nodes
 		if (isleft && isright)
 		{
-
-			/*since the triangle is split the child's bounding box mus be adjusted,
-			else overlapping bounding boxes are created*/
-			//TODO
-
 			//both underlying bounding boxes need to be able to 'hit' the triangle, so push it to both of them
 			triangles_left.push_back(t);
 			triangles_right.push_back(t);
@@ -203,20 +198,10 @@ Node* Node::build(std::vector<TriangleContainer*> triangles, int depth, KD_Tree*
 	right = new Node();
 
 	//now decide whether to keep on subdividing into further bounding boxes and nodes or to stop
-	//if both left and right are almost the same triangles break the recursion
-	if (triangles_left.size() >= 12 && triangles_right.size() >= 12)
-	{
-		//recurse down left and right
-		left->build(triangles_left, depth + 1, kd_tree, bbox, true);
-		right->build(triangles_right, depth + 1, kd_tree, bbox, false);
-
-
-	}
-	else //
-	{
-		//left->triangles = std::vector<TriangleContainer*>();
-		//right->triangles = std::vector<TriangleContainer*>();
-	}
+	//if only one single primitive participates in the bounding box and it is not too complex, we dnot need to subdivide any further
+	if (prim_count == 1 && triangles.size() <= 12) return this; //the concrete bound for complexity is one single cube (so very simple)
+	left->build(triangles_left, depth + 1, kd_tree, bbox, true);
+	right->build(triangles_right, depth + 1, kd_tree, bbox, false);
 	return this;
 }
 
