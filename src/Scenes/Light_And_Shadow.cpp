@@ -52,9 +52,12 @@ Light_And_Shadow::Light_And_Shadow(Input_Handler* i, EventFeedback* fb)
 	Cube* floor =		new Cube(shader[3], glm::vec3(0, -4, 0), 50.f, 2.f, 50.f);
 	Cube* highest_cube =new Cube(shader[3], glm::vec3(0,0,-10), 1, 1, 1);
 	Cube* cube2 =		new Cube(shader[3], glm::vec3(10,0,-10), 1, 2, 1);
-	Cube* wall =		new Cube(shader[3], glm::vec3(-10,0,0), 0.4f, 8, 1);
+	Cube* cube3 =		new Cube(shader[3], glm::vec3(10,5,-10), 1, 2, 1);
+	Cube* cube4 =		new Cube(shader[3], glm::vec3(10,10,-10), 1, 2, 1);
+	Cube* wall =		new Cube(shader[3], glm::vec3(-10,0,0), 0.4f, 8, 25);
 	Cube* unit_cube =	new Cube(shader[3], glm::vec3(10,-2,4), 1, 1, 1);
 	Cube* cube5 =		new Cube(shader[3], glm::vec3(-5,10,5), 0.5, 0.5, 0.5);
+
 
 	Cube* cube6 = new Cube(shader[3], glm::vec3(-5, 20, 30), glm::vec3(-0.5f, 0.5f, 0.5f));
 
@@ -69,10 +72,12 @@ Light_And_Shadow::Light_And_Shadow(Input_Handler* i, EventFeedback* fb)
 	shape.push_back(floor);
 	shape.push_back(highest_cube);
 	shape.push_back(cube2);
+	shape.push_back(cube3);
+	shape.push_back(cube4);
 	shape.push_back(wall);
-	//shape.push_back(unit_cube);
-	//shape.push_back(cube5);
-	//shape.push_back(cube6);
+	shape.push_back(unit_cube);
+	shape.push_back(cube5);
+	shape.push_back(cube6);
 
 	//lights
 	light.push_back(new Light(shader[1], glm::vec3(6, 5.5, 5)));
@@ -86,11 +91,15 @@ Light_And_Shadow::Light_And_Shadow(Input_Handler* i, EventFeedback* fb)
 	wall->texture = texture[0];
 	unit_cube->texture = texture[0];
 	cube5->texture = texture[2];
+	cube3->texture = texture[0];
+	cube4->texture = texture[3];
 	cube6->texture = texture[0];
 
 	floor->normalMap = texture[5];
 	highest_cube->normalMap = texture[3];
 	cube2->normalMap = texture[3];
+	cube3->normalMap = texture[1];
+	cube4->normalMap = texture[3];
 	wall->normalMap = texture[1];
 	unit_cube->normalMap = texture[1];
 	cube5->normalMap = texture[3];

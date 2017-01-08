@@ -226,6 +226,7 @@ Node* Node::build(std::vector<TriangleContainer*> triangles, int depth, KD_Tree*
 		if(b >= bb_from && b <= bb_to) values->insert(b);
 		if(c >= bb_from && c <= bb_to) values->insert(c);
 	}
+	if (values->empty())return this;
 	//get the median of the x||y||z-coordinates
 	std::vector<float>* vec_singles = new std::vector<float>(values->begin(), values->end());
 	nth_element(vec_singles->begin(),  vec_singles->begin() + (vec_singles->size() / 2), vec_singles->end());
@@ -276,12 +277,13 @@ Node* Node::build(std::vector<TriangleContainer*> triangles, int depth, KD_Tree*
 		{
 			triangles_left.push_back(t);
 		}
-	}
-
+	} 
 
 	//now decide whether to keep on subdividing into further bounding boxes and nodes or to stop
 	//if only one single primitive participates in the bounding box and it is not too complex, we dont need to subdivide any further
-	if (triangles.size() <= kd_tree->getComplexityBound()) return this; //the concrete bound for complexity is one single cube (so very simple)
+	if (triangles.size() <= kd_tree->getComplexityBound() ||
+		triangles.size() == triangles_left.size() && std::equal(triangles.begin(), triangles.end(), triangles_left.begin()) ||
+		triangles.size() == triangles_right.size() && std::equal(triangles.begin(), triangles.end(), triangles_right.begin())) return this;
 
 	//prepare the child-Nodes
 	children[0] = new Node(this);
