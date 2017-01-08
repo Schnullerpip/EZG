@@ -100,10 +100,14 @@ Shape* TriangleContainer::getPrimitive() const
 Point3D TriangleContainer::getMidPoint() const
 {
 	//TODO maybe save those results, since they're needed both by getMidPoint() and getBoundingBox()
-	float mid_x = most(getx, greatest, primitive->getPosition().x) - most(getx, smallest, primitive->getPosition().x) / 2;
-	float mid_y = most(gety, greatest, primitive->getPosition().y) - most(gety, smallest, primitive->getPosition().y) / 2;
-	float mid_z = most(getz, greatest, primitive->getPosition().z) - most(getz, smallest, primitive->getPosition().z) / 2;
-	return Point3D(mid_x, mid_y, mid_z);
+	//float mid_x = most(getx, greatest, primitive->getPosition().x) - most(getx, smallest, primitive->getPosition().x) / 2;
+	//float mid_y = most(gety, greatest, primitive->getPosition().y) - most(gety, smallest, primitive->getPosition().y) / 2;
+	//float mid_z = most(getz, greatest, primitive->getPosition().z) - most(getz, smallest, primitive->getPosition().z) / 2;
+
+	float mid_x = getX(A()) + getX(B()) + getX(C());
+	float mid_y = getY(A()) + getY(B()) + getY(C());
+	float mid_z = getZ(A()) + getZ(B()) + getZ(C());
+	return Point3D(mid_x/3, mid_y/3, mid_z/3);
 }
 
 glm::vec3 toVec(const TriangleContainer* tr, float* t)

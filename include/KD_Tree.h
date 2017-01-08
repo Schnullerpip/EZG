@@ -16,15 +16,18 @@ class KD_Tree
 	unsigned k;
 	size_t size = 0;
 	Node* root;
-	Shape* visitNodes(Node*, Ray*) const;
+	size_t complexits_bound;//default is cube complexity
+	Shape* visitNodes(Node*, Ray*, Node** out = nullptr) const;
 public:
 	size_t Size()const;
 	void incrSize();
 	Node* Root()const;
+	size_t getComplexityBound()const;
+	void setComplexityBound(size_t b);
 
-	Shape* fireRay(glm::vec3* origin, glm::vec3* direction, glm::vec3* out_collisionpoint) const;
+	Shape* fireRay(glm::vec3* origin, glm::vec3* direction, glm::vec3* out_collisionpoint, Node** out) const;
 
-	KD_Tree(unsigned dimension, std::vector<Shape*> shapes);
+	KD_Tree(unsigned dimension, std::vector<Shape*> shapes, size_t complexity = 12);//default is cube complexity
 	~KD_Tree();
 };
 
@@ -34,48 +37,25 @@ public:
 struct Node
 {
 	BoundingBox* bbox = nullptr;
-	Node* left = nullptr;
-	Node* right = nullptr;
+	Node* children[2] = {nullptr, nullptr};
+	Node* left()const;
+	Node* right()const;
+
+	Node* parent;
 	std::vector<TriangleContainer*> triangles;
+	int depth;
 
-	Node(){}
+	Node() :parent(nullptr), depth(0) {}
+	Node(Node* parent):parent(parent), depth(parent->depth+1){}
 
-	Node* build(std::vector<TriangleContainer*> triangles, int depth, KD_Tree* kd_tree, BoundingBox* parent = nullptr, bool left_child = false);
+	Node* build(std::vector<TriangleContainer*> triangles, int depth, KD_Tree* kd_tree, Node* parent = nullptr, bool left_child = false);
 
 	virtual ~Node()
 	{
 		delete bbox;
-		if(left)
-			delete left;
-		if(right)
-			delete right;
+		if(left())
+			delete left();
+		if(right())
+			delete right();
 	}
-};
-
-/**
- * A concrete Node, seperating by the x Axis and generating NodeYs
- */
-struct NodeX : public Node
-{
-	NodeX() {}
-	//bool smaller(Point) override;
-	//Node* generateChildNode(Point p)override;
-};
-/**
- * A concrete Node, seperating by the y Axis and generating NodeZs
- */
-struct NodeY : public Node
-{
-	NodeY() {}
-	//bool smaller(Point) override;
-	//Node* generateChildNode(Point p)override;
-};
-/**
- * A concrete Node, seperating by the z Axis and generating NodeXs
- */
-struct NodeZ : public Node
-{
-	NodeZ(){}
-	//bool smaller(Point) override;
-	//Node* generateChildNode(Point p)override;
 };

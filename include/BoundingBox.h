@@ -14,7 +14,7 @@ class BoundingBox
 public:
 	int split_axis;
 	float median;
-	BoundingBox() :BoundingBox(0, 0, 0, 0, 0, 0, glm::vec3(0, 0, 0)) {}
+	BoundingBox():BoundingBox(0, 0, 0, 0, 0, 0, glm::vec3(0, 0, 0)) {}
 	BoundingBox(float fromX, float toX, float fromY, float toY, float fromZ, float toZ, glm::vec3 origin);
 
 	void recalculate();
@@ -22,6 +22,8 @@ public:
 	int longestAxis()const;
 	glm::vec3 getPosition()const;
 	bool hit(Ray*) const;
+
+	bool surrounds(glm::vec3&)const;
 
 	float Width()const;
 	float Height()const;

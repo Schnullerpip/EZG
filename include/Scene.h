@@ -27,6 +27,13 @@ public:
 	GLFWwindow* window;
 	virtual void render(GLfloat deltaTime) = 0;
 	virtual void update(GLfloat deltaTime, EventFeedback* feedback) = 0;
+	virtual ~Scene()
+	{
+		for (auto s : shader) delete s;
+		for (auto s : shape) delete s;
+		for (auto l : light) delete l;
+		for (auto t : texture) delete t;
+	}
 };
 
 inline void Scene::init(int window_width, int window_height, const char* title) {

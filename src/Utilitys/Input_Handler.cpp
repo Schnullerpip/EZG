@@ -5,6 +5,7 @@
 void Input_Handler::reset()
 {
 	first_mouse = true;
+	listeners.clear();
 	for (int i = 0; i < 1024; ++i)
 	{
 		keys[i] = false;

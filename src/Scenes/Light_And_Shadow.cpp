@@ -2,6 +2,7 @@
 #include "Cube.h"
 #include <glm/gtx/quaternion.hpp>
 #include "Text.h"
+#include <stack>
 
 
 bool light_follow = false;
@@ -15,19 +16,6 @@ void Light_And_Shadow::init(int window_width, int window_height, const char* tit
 	glEnable(GL_DEPTH_TEST);
 	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 
-}
-
-//helper function for recursively initializing boundingboxrepresentations according to the kd_tree
-void initialize_bbr(std::vector<std::pair<Cube*, glm::vec3>>* cubes, std::vector<BoundingBox*>* bboxes, Node* node, Shader* s, int depth = 0)
-{
-	if (!node)return;
-	BoundingBox* bb = node->bbox;
-	if (!bb)return;
-	float c = 0.13 * depth;
-	cubes->push_back(std::make_pair(new Cube(s, bb->getPosition(), bb->Width(), bb->Height(), bb->Depth()), glm::vec3(c, c, c))) ;
-	(*bboxes).push_back(bb);
-	initialize_bbr(cubes, bboxes, node->left, s, depth +1);
-	initialize_bbr(cubes, bboxes, node->right, s, depth +1);
 }
 
 Light_And_Shadow::Light_And_Shadow(Input_Handler* i, EventFeedback* fb)
@@ -61,7 +49,7 @@ Light_And_Shadow::Light_And_Shadow(Input_Handler* i, EventFeedback* fb)
 	texture.push_back(new Texture("images/grass.jpg"));
 	texture.push_back(new Texture("images/grass_NRM.png"));
 
-	Cube* floor =		new Cube(shader[3], glm::vec3(0, 0, -15), 5.f, 5.f, 1.f);
+	Cube* floor =		new Cube(shader[3], glm::vec3(0, -4, 0), 50.f, 2.f, 50.f);
 	Cube* highest_cube =new Cube(shader[3], glm::vec3(0,0,-10), 1, 1, 1);
 	Cube* cube2 =		new Cube(shader[3], glm::vec3(10,0,-10), 1, 2, 1);
 	Cube* wall =		new Cube(shader[3], glm::vec3(-10,0,0), 0.4f, 8, 1);
@@ -115,11 +103,14 @@ Light_And_Shadow::Light_And_Shadow(Input_Handler* i, EventFeedback* fb)
 	std::stringstream ss;
 	ss << "MSAA -> using " << feedback->number_samples << " samples";
 	console->out(new OnScreenMessage(ss.str()));
+	console->registerCommand(&draw_kd_tree, "DRAW KD", "rendering Kd Tree");
+	console->registerCommand(&increase_maxd, "DP", "increased max depth");
+	console->registerCommand(&decrease_maxd, "DM", "decreased max depth");
+	console->registerCommand(&kd_set_complexity, "COMPLEXITY", "updating KD_TREE's complexity by mouse scroll");
+	console->registerCommand(&rebuild_kdt, "REBUILD", "Rebuilding kd tree");
 
 	//initialize the KD_Tree
 	kdt = new KD_Tree(3, shape);
-	std::vector<BoundingBox*> bboxes;
-	initialize_bbr(&boundingBoxRepresentation, &bboxes, kdt->Root(), shader[1]);
 	ss.clear();
 	ss << "[Scene]::Initialized KD_Tree -> size: " << kdt->Size();
 	console->out(ss.str());
@@ -127,18 +118,46 @@ Light_And_Shadow::Light_And_Shadow(Input_Handler* i, EventFeedback* fb)
 
 }
 
-void renderBB(std::vector<std::pair<Cube*, glm::vec3>>& cubes, Camera* cam)
+void renderKD_Node(Node* node, Shader* s, Camera* cam)
 {
-	glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
-	/*render all the boundingbox representations*/
-	for (auto bb : cubes)
+	if (!node)return;
+	Cube* c = new Cube(s, node->bbox->getPosition(), node->bbox->Width(), node->bbox->Height(), node->bbox->Depth());
+	cam->model_translation(c->getPosition());
+	cam->apply_to(c->shader);
+	float color = node->depth * 0.13f;
+	glUniform3f(glGetUniformLocation(c->shader->Program, "lightColor"), color, color, color);
+	c->draw();
+
+	renderKD_Node(node->left(), s, cam);
+	renderKD_Node(node->right(), s, cam);
+}
+void renderKD(Node* node, Shader* s, Camera* cam, int max_depth, Node* hit_node)
+{
+	std::stack<Node*> nodes;
+	Node* iter = hit_node;
+	while (hit_node)
 	{
-		cam->model_translation(bb.first->getPosition());
-		cam->apply_to(bb.first->shader);
-		glUniform3f(glGetUniformLocation(bb.first->shader->Program, "lightColor"),  bb.second.x, bb.second.y, bb.second.z);
-		bb.first->draw();
+		nodes.push(iter);
+		if (iter->parent)
+			iter = iter->parent;
+		else break;
 	}
-	
+
+	glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+	if(hit_node)
+		for (int i = 0; i < max_depth && !nodes.empty(); ++i)
+		{
+			Node* n = nodes.top();
+			Cube* c = new Cube(s, n->bbox->getPosition(), n->bbox->Width(), n->bbox->Height(), n->bbox->Depth());
+			cam->model_translation(c->getPosition());
+			cam->apply_to(c->shader);
+			float color = n->depth * 0.13f;
+			glUniform3f(glGetUniformLocation(c->shader->Program, "lightColor"), color, color, color);
+			c->draw();
+			nodes.pop();
+		}
+	else
+		renderKD_Node(node, s, cam);
 	glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 }
 
@@ -186,7 +205,32 @@ void Light_And_Shadow::render(GLfloat deltaTime) {
 	}
 
 	//render the bounding boxes
-	renderBB(boundingBoxRepresentation, &cam);
+	static int maxd = 0;
+	if (increase_maxd) { maxd++; increase_maxd = false;}
+	else if (decrease_maxd && (maxd-1) > 0) { maxd--; decrease_maxd = false;}
+	if (draw_kd_tree)
+	{
+		renderKD(kdt->Root(), shader[1], &cam, maxd,hitpoint_node1);
+		if (hitpoint_repr1)
+		{
+
+			cam.model_translation(hitpoint_repr1->getPosition());
+			cam.apply_to(hitpoint_repr1->shader);
+			hitpoint_repr1->draw();
+		}
+		if (hitpoint_repr2)
+		{
+
+			cam.model_translation(hitpoint_repr2->getPosition());
+			cam.apply_to(hitpoint_repr2->shader);
+			hitpoint_repr2->draw();
+		}
+
+		//if (hitpoint_repr1 && hitpoint_repr2) {
+		//	Shape::drawLine(hitpoint_repr1->getPosition(), hitpoint_repr2->getPosition(), shader[2]);
+		//}
+	}
+
 
 	console->update(deltaTime);
 }
@@ -199,22 +243,85 @@ void Light_And_Shadow::update(GLfloat deltaTime, EventFeedback* feedback) {
 	light_follow = input->is_pressed(GLFW_KEY_SPACE, false);
 	increase_normal_effect = input->is_pressed(GLFW_KEY_K, false);
 	decrease_normal_effect = input->is_pressed(GLFW_KEY_J, false) && !increase_normal_effect;
+	
+	if (kd_set_complexity)
+	{
+		std::stringstream ss;
+		kdt->setComplexityBound(kdt->getComplexityBound() + input->scroll_count);
+		ss << kdt->getComplexityBound() + input->scroll_count;
+		input->scroll_count = 0;
+		console->out(ss.str());
 
-	if (input->is_pressed(GLFW_KEY_R))
+
+		static size_t last = 12;
+
+		size_t com = kdt->getComplexityBound();
+		if (last != com)
+		{
+			last = com;
+			hitpoint_repr1 = nullptr;
+			hitpoint_repr1 = nullptr;
+			hitpoint_node1 = nullptr;
+			hitpoint_node2 = nullptr;
+			delete kdt;
+			kdt = new KD_Tree(3, shape, com);
+		}
+	}
+	else if (rebuild_kdt)
+	{
+		rebuild_kdt = false;
+		size_t com = kdt->getComplexityBound();
+		hitpoint_repr1 = nullptr;
+		hitpoint_repr1 = nullptr;
+		hitpoint_node1 = nullptr;
+		hitpoint_node2 = nullptr;
+		delete kdt;
+		kdt = new KD_Tree(3, shape, com);
+	}
+
+	if (input->is_pressed(GLFW_KEY_R, false))
 	{
 		//fire a ray
 		glm::vec3 collisoin_point;
-		Shape* target =  kdt->fireRay(&cam.pos, &cam.front, &collisoin_point);
+		Shape* target =  kdt->fireRay(&cam.pos, &cam.front, &collisoin_point, &hitpoint_node1);
 		if (target)
 		{
-			ss << "[Update]::RayCast -> hit target " << target << " (" << collisoin_point.x << ", " << collisoin_point.y << ", " << collisoin_point.z << ")";
+			hitpoint_repr1 = new Cube(shader[0], collisoin_point, 0.1, 0.1, 0.1);
+			ss << " (" << collisoin_point.x << ", " << collisoin_point.y << ", " << collisoin_point.z << ")";
+			if(hitpoint_repr2) ss << " - distance: " << glm::length(hitpoint_repr1->getPosition() - hitpoint_repr2->getPosition());
+			console->out(ss.str());
+			ss.str("");//reset the stream 
+
 		}
 		else
 		{
-			ss << "[Update]::RayCast -> no hit detected";
+			ss << "RayCast -> no hit detected";
+			//delete hitpoint_repr1; CANT DELETE THIS?!?!?!!?	
+			hitpoint_repr1 = nullptr;
+			console->out(ss.str());
 		}
+	}else if (input->is_pressed(GLFW_KEY_T, false))
+	{
+		//fire a ray
+		glm::vec3 collisoin_point;
+		Shape* target =  kdt->fireRay(&cam.pos, &cam.front, &collisoin_point, &hitpoint_node2);
+		if (target)
+		{
+			hitpoint_repr2 = new Cube(shader[0], collisoin_point, 0.1, 0.1, 0.1);
+			ss << " (" << collisoin_point.x << ", " << collisoin_point.y << ", " << collisoin_point.z << ")";
+			if (hitpoint_repr1) {
+				ss << " - distance: " << glm::length(hitpoint_repr1->getPosition() - hitpoint_repr2->getPosition());
+			}
 			console->out(ss.str());
 			ss.str("");//reset the stream 
+		}
+		else
+		{
+			ss << "RayCast -> no hit detected";
+			//delete hitpoint_repr1; CANT DELETE THIS?!?!?!!?	
+			hitpoint_repr2 = nullptr;
+			console->out(ss.str());
+		}
 	}
 
 
@@ -239,12 +346,6 @@ void Light_And_Shadow::update(GLfloat deltaTime, EventFeedback* feedback) {
 
 Light_And_Shadow::~Light_And_Shadow()
 {
-	for (auto t : texture)
-		delete t;
-	for (auto s : shader)
-		delete s;
-	for (auto s : shape)
-		delete s;
 	delete console;
 }
 

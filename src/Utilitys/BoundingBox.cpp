@@ -117,6 +117,22 @@ bool BoundingBox::hit(Ray* r) const
     return ( (tmin < r->getTMax()) && (tmax > 0) );
 }
 
+bool BoundingBox::surrounds(glm::vec3& point) const
+{
+	float e = 0.01f;
+	if (point.x - e <= max.x && point.x + e>= min.x)
+	{
+		if (point.y - e <= max.y && point.y + e >= min.y)
+		{
+			if (point.z - e <= max.z && point.z + e >= min.z)
+			{
+				return true;
+			} 
+		} 
+	}
+	return false;
+}
+
 float BoundingBox::Width() const
 {
 	return width;

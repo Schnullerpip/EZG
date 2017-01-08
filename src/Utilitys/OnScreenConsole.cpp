@@ -69,6 +69,10 @@ void OnScreenConsole::out(std::string message)
 	out(new OnScreenMessage(message));
 }
 
+void OnScreenConsole::registerCommand(bool* b, const char* command, const char* out_message)
+{
+	references.push_back(std::make_tuple(b, command, out_message));
+}
 
 void OnScreenConsole::update(float deltatime)
 {
@@ -297,13 +301,25 @@ void OnScreenConsole::interpreteInput(std::string input)
 	}
 	else
 	{
+		for (auto c : references) //the user defined commands - if one of them were found trigger the according bool
+		{
+			if (in == std::get<1>(c))
+			{
+				*std::get<0>(c) = !*std::get<0>(c);
+				out(std::get<2>(c));
+				return;
+			}
+		}
+
 		if (in != "")
+		{
 			out(new OnScreenMessage("unknown command"));
+		}
 	}
 }
 
 
-void OnScreenConsole::proposal(std::string s)
+void OnScreenConsole::proposal(std::string s) const
 {
 	static int i = 0;
 	if (s.find("HINT") != std::string::npos)

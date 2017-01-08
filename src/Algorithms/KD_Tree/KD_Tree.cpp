@@ -20,49 +20,74 @@ Node* KD_Tree::Root() const
 	return root;
 }
 
-Shape* KD_Tree::fireRay(glm::vec3* origin, glm::vec3* direction, glm::vec3* out_collisionpoint) const
+size_t KD_Tree::getComplexityBound() const
+{
+	return complexits_bound;
+}
+
+void KD_Tree::setComplexityBound(size_t b)
+{
+	complexits_bound = b;
+}
+
+Shape* KD_Tree::fireRay(glm::vec3* origin, glm::vec3* direction, glm::vec3* out_collisionpoint, Node** out) const
 {
 	Ray* ray = new Ray(*origin, *direction);
-	Shape* retVal = visitNodes(root, ray);
+	Shape* retVal = visitNodes(root, ray, out);
 	if(ray->T())
 		*out_collisionpoint = ray->beam(*ray->T());
 	delete ray;
 	return retVal;
 }
 
-Shape* KD_Tree::visitNodes(Node* node, Ray* ray) const
+Shape* KD_Tree::visitNodes(Node* node, Ray* ray, Node** out) const
 {
 	if (!node) return nullptr;
 
 	if (node->bbox->hit(ray))
 	{
-		if (!node->left && !node->right)
+		if (!node->left() || !node->right())
 		{
-			//inside Leaf!!!
+			//inside Node that holds triangles, nobody else does
 			//iterate through this nodes triangles and check for intersection
+			float nearest_t = ray->getTMax()+1;
+			Shape* nearest_prim = nullptr;
 			for (auto t : node->triangles)
 			{
 				if (t->intersects(ray))
 				{
-					return t->getPrimitive();
+					if (*ray->T() < nearest_t)
+					{
+						nearest_t = *ray->T();
+						nearest_prim = t->getPrimitive();
+					}
 				}
 			}
-		}
-		else
-		{
-			//recurse down
-			Shape* retVal = visitNodes(node->left, ray);
-			if (!retVal)
+			if (node->bbox->surrounds(ray->beam(nearest_t)))
 			{
-				retVal = visitNodes(node->right, ray);
+				ray->setT(nearest_t);
+				*out = node;
+				return nearest_prim;
 			}
-			return retVal;
 		}
+
+		//recurse down
+
+		//which child to recurse first into?
+		int first = ray->Origin()[node->bbox->split_axis] > node->bbox->median;
+
+		Shape* retVal = visitNodes(node->children[first], ray, out);
+		if (!retVal)
+		{
+			retVal = visitNodes(node->children[first^1], ray, out);
+		}
+		return retVal;
 	}
+	*out = nullptr;
 	return nullptr;
 }
 
-KD_Tree::KD_Tree(unsigned dimension, std::vector<Shape*> shapes):k(dimension)
+KD_Tree::KD_Tree(unsigned dimension, std::vector<Shape*> shapes, size_t complexity):k(dimension), complexits_bound(complexity)
 {
 	const unsigned offset = 14; //the offset in the cube's vertice data (also includes color, normals etc.)
 	root = new Node();
@@ -123,7 +148,11 @@ BB_Getter to_getters[] = {
 	&BoundingBox::ToZ,
 };
 
-Node* Node::build(std::vector<TriangleContainer*> triangles, int depth, KD_Tree* kd_tree, BoundingBox* parent, bool left_child)
+//float(*3D_Getter[])(Point3D*) = {
+//
+//};
+
+Node* Node::build(std::vector<TriangleContainer*> triangles, int depth, KD_Tree* kd_tree, Node* parent, bool left_child)
 {
 	kd_tree->incrSize();
 	this->triangles = triangles;
@@ -135,10 +164,8 @@ Node* Node::build(std::vector<TriangleContainer*> triangles, int depth, KD_Tree*
 
 	if (triangles.size() == 1) //return a node with the minimal props
 	{
-		left = new Node();
-		right = new Node();
-		left->triangles = std::vector<TriangleContainer*>();
-		right->triangles = std::vector<TriangleContainer*>();
+		left()->triangles = std::vector<TriangleContainer*>();
+		right()->triangles = std::vector<TriangleContainer*>();
 		return this;
 	}
 
@@ -150,20 +177,20 @@ Node* Node::build(std::vector<TriangleContainer*> triangles, int depth, KD_Tree*
 	//now that the boundind box is complete - check if it should be trimmed, so it cant exceed the parents bounding box, or the median(split_point) of the parent
 	if (parent)
 	{
-		if (bbox->FromX() < parent->FromX())bbox->setFromX(parent->FromX());
-		if (bbox->FromY() < parent->FromY())bbox->setFromY(parent->FromY());
-		if (bbox->FromZ() < parent->FromZ())bbox->setFromZ(parent->FromZ());
+		if (bbox->FromX() < parent->bbox->FromX())bbox->setFromX(parent->bbox->FromX());
+		if (bbox->FromY() < parent->bbox->FromY())bbox->setFromY(parent->bbox->FromY());
+		if (bbox->FromZ() < parent->bbox->FromZ())bbox->setFromZ(parent->bbox->FromZ());
 
-		if (bbox->ToX() > parent->ToX())bbox->setToX(parent->ToX());
-		if (bbox->ToY() > parent->ToY())bbox->setToY(parent->ToY());
-		if (bbox->ToZ() > parent->ToZ())bbox->setToZ(parent->ToZ());
+		if (bbox->ToX() > parent->bbox->ToX())bbox->setToX(parent->bbox->ToX());
+		if (bbox->ToY() > parent->bbox->ToY())bbox->setToY(parent->bbox->ToY());
+		if (bbox->ToZ() > parent->bbox->ToZ())bbox->setToZ(parent->bbox->ToZ());
 
 		//check for exceeding the parent's median
-		if (left_child && (bbox->*to_getters[parent->split_axis])() > parent->median) {
-			(bbox->*to_setters[parent->split_axis])(parent->median);
+		if (left_child && (bbox->*to_getters[parent->bbox->split_axis])() > parent->bbox->median) {
+			(bbox->*to_setters[parent->bbox->split_axis])(parent->bbox->median);
 		}
-		else if(!left_child && (bbox->*from_getters[parent->split_axis])() < parent->median) {
-			(bbox->*from_setters[parent->split_axis])(parent->median);
+		else if(!left_child && (bbox->*from_getters[parent->bbox->split_axis])() < parent->bbox->median) {
+			(bbox->*from_setters[parent->bbox->split_axis])(parent->bbox->median);
 		}
 
 		bbox->recalculate();
@@ -181,12 +208,23 @@ Node* Node::build(std::vector<TriangleContainer*> triangles, int depth, KD_Tree*
 	Shape* last = nullptr;
 	auto g = getters[bbox->split_axis];
 
+	float bb_from = (bbox->*from_getters[bbox->split_axis])(), bb_to = (bbox->*to_getters[bbox->split_axis])();
+
 	for (auto t : triangles) {
 		if (last != t->getPrimitive()) { ++prim_count; last = t->getPrimitive(); }
-		//values->insert(point_getters[bbox->split_axis](t->getMidPoint()));
-		values->insert((t->*g)(t->A()));
-		values->insert((t->*g)(t->B()));
-		values->insert((t->*g)(t->C()));
+		Point3D p = t->getMidPoint();
+		float m = point_getters[bbox->split_axis](p), a, b, c;
+
+		if(false && m >= bb_from && m <= bb_to)
+			values->insert(m);
+
+		a = (t->*g)(t->A());
+		b = (t->*g)(t->B());
+		c = (t->*g)(t->C());
+
+		if(a >= bb_from && a <= bb_to) values->insert(a);
+		if(b >= bb_from && b <= bb_to) values->insert(b);
+		if(c >= bb_from && c <= bb_to) values->insert(c);
 	}
 	//get the median of the x||y||z-coordinates
 	std::vector<float>* vec_singles = new std::vector<float>(values->begin(), values->end());
@@ -209,13 +247,18 @@ Node* Node::build(std::vector<TriangleContainer*> triangles, int depth, KD_Tree*
 		//according to the split axis, divide the triangles representively (using the member function pointers PTMFs!)
 		float a = (t->*g)(t->A()), b = (t->*g)(t->B()), c = (t->*g)(t->C());
 
-		isright |= median < a;
-		isright |= median < b;
-		isright |= median < c;
+		isright |= median < a;// && a <= bb_to;
+		isright |= median < b;// && b <= bb_to;
+		isright |= median < c;// && c <= bb_to;
 
-		isleft |=  median > a;
-		isleft |=  median > b;
-		isleft |=  median > c;
+		isleft |=  median > a;// && a >= bb_from;
+		isleft |=  median > b;// && b >= bb_from;
+		isleft |=  median > c;// && c >= bb_from;
+
+		if (((Cube*)t->getPrimitive())->name == "wall")
+		{
+			isleft = isleft;
+		}
 
 		//if isleft and isright -> the triangle is split -> give it to both child nodes
 		if (isleft && isright)
@@ -237,18 +280,28 @@ Node* Node::build(std::vector<TriangleContainer*> triangles, int depth, KD_Tree*
 
 
 	//now decide whether to keep on subdividing into further bounding boxes and nodes or to stop
-	//if only one single primitive participates in the bounding box and it is not too complex, we dnot need to subdivide any further
-	if (prim_count == 1 && triangles.size() <= 12) return this; //the concrete bound for complexity is one single cube (so very simple)
+	//if only one single primitive participates in the bounding box and it is not too complex, we dont need to subdivide any further
+	if (triangles.size() <= kd_tree->getComplexityBound()) return this; //the concrete bound for complexity is one single cube (so very simple)
 
 	//prepare the child-Nodes
-	left = new Node();
-	right = new Node();
-	left->build(triangles_left, depth + 1, kd_tree, bbox, true);
-	right->build(triangles_right, depth + 1, kd_tree, bbox, false);
+	children[0] = new Node(this);
+	children[1] = new Node(this);
+	left()->build(triangles_left, depth + 1, kd_tree, this, true);
+	right()->build(triangles_right, depth + 1, kd_tree, this, false);
 	return this;
 }
 
 KD_Tree::~KD_Tree()
 {
 	delete root;
+}
+
+Node* Node::left() const
+{
+	return children[0];
+}
+
+Node* Node::right() const
+{
+	return children[1];
 }

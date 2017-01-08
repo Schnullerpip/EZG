@@ -19,11 +19,16 @@ class OnScreenConsole : public InputListener
 	std::string last_command = "$>";
 	bool insert_mode = false;
 	void interpreteInput(std::string s);
-	void proposal(std::string s);
+	void proposal(std::string s) const;
 	std::string clear();
+
+	std::vector<std::tuple<bool*, const char*, const char*>> references;
 public:
 	void out(OnScreenMessage* msg = nullptr);
 	void out(std::string message);
+
+	void registerCommand(bool*, const char*, const char* out_message);
+
 	void update(float deltatime);
 	void in();
 	OnScreenConsole(float ki, Input_Handler* input, EventFeedback* fb, int window_width, int window_height);
