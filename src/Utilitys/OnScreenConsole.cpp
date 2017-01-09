@@ -40,6 +40,7 @@ std::string OnScreenConsole::clear()
 
 void OnScreenConsole::out(OnScreenMessage* msg)
 {
+	if (!versatile) return;
 	//if no msg was given - output the current assembled line
 	if (!msg && current_input)
 	{
@@ -76,7 +77,6 @@ void OnScreenConsole::registerCommand(bool* b, const char* command, const char* 
 
 void OnScreenConsole::update(float deltatime)
 {
-
 	if (!insert_mode && (count += deltatime) >= ki && !messages.empty())
 	{
 		OnScreenMessage* msg = messages.front();
@@ -210,6 +210,13 @@ void OnScreenConsole::interpreteInput(std::string input)
 	{
 		feedback->restart = true;
 		feedback->quitgame = false;
+	}
+	else if (in == "SILENCE")
+	{
+		std::stringstream ss;
+		ss << "Console " << (versatile ? "is quiet now" : " gives output again");
+		out(ss.str());
+		versatile = !versatile;
 	}
 	else if (!in.compare("ABC"))
 	{

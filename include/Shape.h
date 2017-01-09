@@ -34,7 +34,7 @@ public:
 		//if (texture)delete texture; NOT SHAPES RESPONSIBILITY!!!!
 		glDeleteBuffers(1, &VBO);
 	}
-	static void drawLine(glm::vec3 from, glm::vec3 to, Shader*);
+	static void drawLine(glm::vec3 from, glm::vec3 to, Shader*, float lineWidth = 1);
 };
 
 inline std::vector<GLfloat>* Shape::getVertices()
@@ -42,8 +42,9 @@ inline std::vector<GLfloat>* Shape::getVertices()
 	return &vertices;
 }
 
-inline void Shape::drawLine(glm::vec3 from, glm::vec3 to, Shader* s)
+inline void Shape::drawLine(glm::vec3 from, glm::vec3 to, Shader* s, float lineWidth)
 {
+	glLineWidth(lineWidth);
 	GLuint VertexArrayID;
     glGenVertexArrays(1, &VertexArrayID);
     glBindVertexArray(VertexArrayID);
@@ -62,7 +63,7 @@ inline void Shape::drawLine(glm::vec3 from, glm::vec3 to, Shader* s)
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(
             0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-            2,                  // size
+            3,                  // size
             GL_FLOAT,           // type
             GL_FALSE,           // normalized?
             0,                  // stride
@@ -76,4 +77,5 @@ inline void Shape::drawLine(glm::vec3 from, glm::vec3 to, Shader* s)
 	// Cleanup VBO
     glDeleteBuffers(1, &vertexbuffer);
     glDeleteVertexArrays(1, &VertexArrayID);
+	glLineWidth(1);
 }

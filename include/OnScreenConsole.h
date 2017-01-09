@@ -17,7 +17,7 @@ class OnScreenConsole : public InputListener
 
 	OnScreenMessage* current_input = nullptr;
 	std::string last_command = "$>";
-	bool insert_mode = false;
+	bool insert_mode = false, versatile = true;
 	void interpreteInput(std::string s);
 	void proposal(std::string s) const;
 	std::string clear();

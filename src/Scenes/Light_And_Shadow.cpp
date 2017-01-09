@@ -80,7 +80,7 @@ Light_And_Shadow::Light_And_Shadow(Input_Handler* i, EventFeedback* fb)
 	shape.push_back(cube6);
 
 	//lights
-	light.push_back(new Light(shader[1], glm::vec3(6, 5.5, 5)));
+	light.push_back(new Light(shader[1], glm::vec3(6, 5.5, 5), 0.2, 0.2, 0.2));
 
 	//start position for camera
 	cam.pos = glm::vec3(5, 20, 50);
@@ -238,7 +238,7 @@ void Light_And_Shadow::render(GLfloat deltaTime) {
 		if (hitpoint_repr1 && hitpoint_repr2) {
 			cam.model_tmp = glm::mat4();
 			cam.apply_to(shader[2]);
-			Shape::drawLine(hitpoint_repr1->getPosition(), hitpoint_repr2->getPosition(), shader[2]);
+			Shape::drawLine(hitpoint_repr1->getPosition(), hitpoint_repr2->getPosition(), shader[2], 4);
 		}
 	}
 
