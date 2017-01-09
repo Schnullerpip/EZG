@@ -52,14 +52,15 @@ Light_And_Shadow::Light_And_Shadow(Input_Handler* i, EventFeedback* fb)
 	Cube* floor =		new Cube(shader[3], glm::vec3(0, -4, 0), 50.f, 2.f, 50.f);
 	Cube* highest_cube =new Cube(shader[3], glm::vec3(0,0,-10), 1, 1, 1);
 	Cube* cube2 =		new Cube(shader[3], glm::vec3(10,0,-10), 1, 2, 1);
-	Cube* cube3 =		new Cube(shader[3], glm::vec3(10,5,-10), 1, 2, 1);
-	Cube* cube4 =		new Cube(shader[3], glm::vec3(10,10,-10), 1, 2, 1);
+	Cube* cube3 =		new Cube(shader[3], glm::vec3(12,5,-10), 1, 1, 1);
+	Cube* cube4 = new Cube(shader[3], glm::vec3(14, 10, -10), 1, 2, 1);
 	Cube* wall =		new Cube(shader[3], glm::vec3(-10,0,0), 0.4f, 8, 25);
 	Cube* unit_cube =	new Cube(shader[3], glm::vec3(10,-2,4), 1, 1, 1);
 	Cube* cube5 =		new Cube(shader[3], glm::vec3(-5,10,5), 0.5, 0.5, 0.5);
-
-
-	Cube* cube6 = new Cube(shader[3], glm::vec3(-5, 20, 30), glm::vec3(-0.5f, 0.5f, 0.5f));
+	Cube* cube6 =		new Cube(shader[3], glm::vec3(-5, 20, 30), glm::vec3(-0.5f, 0.5f, 0.5f));
+	Cube* cube7 =		new Cube(shader[3], glm::vec3(2,55,5), 0.5, 0.5, 0.5);
+	Cube* floor_in_the_sky =new Cube(shader[3], glm::vec3(2,50,5), 10, 0.5, 10);
+	Cube* wall_in_the_sky =new Cube(shader[3], glm::vec3(-20,30,0), 1, 20, 10);
 
 	floor->name = "floor";
 	highest_cube->name = "highest_cube";
@@ -78,9 +79,12 @@ Light_And_Shadow::Light_And_Shadow(Input_Handler* i, EventFeedback* fb)
 	shape.push_back(unit_cube);
 	shape.push_back(cube5);
 	shape.push_back(cube6);
+	shape.push_back(cube7);
+	shape.push_back(floor_in_the_sky);
+	shape.push_back(wall_in_the_sky);
 
 	//lights
-	light.push_back(new Light(shader[1], glm::vec3(6, 5.5, 5), 0.2, 0.2, 0.2));
+	light.push_back(new Light(shader[1], glm::vec3(6, 5.5, 5)));
 
 	//start position for camera
 	cam.pos = glm::vec3(5, 20, 50);
@@ -94,6 +98,9 @@ Light_And_Shadow::Light_And_Shadow(Input_Handler* i, EventFeedback* fb)
 	cube3->texture = texture[0];
 	cube4->texture = texture[3];
 	cube6->texture = texture[0];
+	cube7->texture = texture[0];
+	floor_in_the_sky->texture = texture[3];
+	wall_in_the_sky->texture = texture[0];
 
 	floor->normalMap = texture[5];
 	highest_cube->normalMap = texture[3];
@@ -104,6 +111,9 @@ Light_And_Shadow::Light_And_Shadow(Input_Handler* i, EventFeedback* fb)
 	unit_cube->normalMap = texture[1];
 	cube5->normalMap = texture[3];
 	cube6->normalMap = texture[1];
+	cube7->normalMap = texture[1];
+	floor_in_the_sky->normalMap = texture[3];
+	wall_in_the_sky->normalMap = texture[1];
 
 
 	//initialize the OnScreenConsole
