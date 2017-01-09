@@ -1,14 +1,30 @@
 #include "TriangleContainer.h"
 
 //udeful helper functions
-float getx(float* triangle) { return *triangle; }
-float gety(float* triangle) { return *(triangle + 1); }
-float getz(float* triangle) { return *(triangle + 2); }
+float getx(const glm::vec3* triangle) { return triangle->x; }
+float gety(const glm::vec3* triangle) { return triangle->y; }
+float getz(const glm::vec3* triangle) { return triangle->z; }
 bool greatest(float a, float b) { return a > b; }
 bool smallest(float a, float b) { return !greatest(a, b); }
 
 TriangleContainer::TriangleContainer(float* triangleLocation, Shape* prim, int offset):primitive(prim), triangle(triangleLocation), offset(offset)
 {
+	/*get translatet rotatet global coordinate values ---------------------*/
+	glm::vec3 coordinatesA = glm::vec3(getXLocal(A()), getYLocal(A()), getZLocal(A()));
+	glm::vec3 coordinatesB = glm::vec3(getXLocal(B()), getYLocal(B()), getZLocal(B()));
+	glm::vec3 coordinatesC = glm::vec3(getXLocal(C()), getYLocal(C()), getZLocal(C()));
+
+	glm::mat4 model_A = glm::translate(model_A, primitive->getPosition());
+	glm::mat4 model_B = glm::translate(model_B, primitive->getPosition());
+	glm::mat4 model_C = glm::translate(model_C, primitive->getPosition());
+	model_A = glm::rotate(model_A, getPrimitive()->rotation_angle, getPrimitive()->rotation_axis);
+	model_B = glm::rotate(model_B, getPrimitive()->rotation_angle, getPrimitive()->rotation_axis);
+	model_C = glm::rotate(model_C, getPrimitive()->rotation_angle, getPrimitive()->rotation_axis);
+
+	world_A = model_A * glm::vec4(coordinatesA, 1) ;
+	world_B = model_B * glm::vec4(coordinatesB, 1);
+	world_C = model_C * glm::vec4(coordinatesC, 1);
+	/*---------------------------------------------------------------------*/
 }
 
 float* TriangleContainer::A()const
@@ -56,6 +72,20 @@ float TriangleContainer::getZ(float* triangle) const
 	return *(triangle + 2) + primitive->getPosition().z;
 }
 
+float TriangleContainer::getXLocal(float* triangle) const
+{
+	return *triangle;
+}
+
+float TriangleContainer::getYLocal(float* triangle) const
+{
+	return *(triangle + 1);
+}
+
+float TriangleContainer::getZLocal(float* triangle) const
+{
+	return *(triangle + 2);
+}
 
 bool TriangleContainer::equals(TriangleContainer* tc)const
 {
@@ -63,28 +93,28 @@ bool TriangleContainer::equals(TriangleContainer* tc)const
 }
 
 
-float TriangleContainer::most(float(*genericGetter)(float*), bool (*generic_comparision)(float a, float b), float offset) const
+float TriangleContainer::most(float(*genericGetter)(const glm::vec3*), bool (*generic_comparision)(float a, float b), float offset) const
 {
-		float target = genericGetter(A()) + offset, tmp;
-		if (generic_comparision(tmp = genericGetter(B()) + offset, target)) { target = tmp; }
-		if (generic_comparision(tmp = genericGetter(C()) + offset, target)) { target = tmp; }
+		float target = genericGetter(&world_A) + offset, tmp;
+		if (generic_comparision(tmp = genericGetter(&world_B) + offset, target)) { target = tmp; }
+		if (generic_comparision(tmp = genericGetter(&world_C) + offset, target)) { target = tmp; }
 
 		return target;
 	}
 
 /** returns a bounding box after processing the actual bounds*/
-BoundingBox* TriangleContainer::getBoundingBox() const
+BoundingBox TriangleContainer::getBoundingBox() const
 {
-	float lowest_x = most(getx, smallest, primitive->getPosition().x);
-	float highest_x = most(getx, greatest, primitive->getPosition().x);
+	float lowest_x = most(getx, smallest);
+	float highest_x = most(getx, greatest);
 
-	float lowest_y = most(gety, smallest, primitive->getPosition().y);
-	float highest_y = most(gety, greatest, primitive->getPosition().y);
+	float lowest_y = most(gety, smallest);
+	float highest_y = most(gety, greatest);
 
-	float lowest_z = most(getz, smallest, primitive->getPosition().z);
-	float highest_z = most(getz, greatest, primitive->getPosition().z);
+	float lowest_z = most(getz, smallest);
+	float highest_z = most(getz, greatest);
 
-	return new BoundingBox(lowest_x, highest_x, lowest_y, highest_y, lowest_z, highest_z, primitive->getPosition());
+	return BoundingBox(lowest_x, highest_x, lowest_y, highest_y, lowest_z, highest_z, primitive->getPosition());
 }
 
 float* TriangleContainer::getTrianglePtr() const

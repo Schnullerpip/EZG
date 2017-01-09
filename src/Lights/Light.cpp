@@ -37,9 +37,9 @@ Shader* Light::renderShadow(std::vector<Shape*> shapes, GLFWwindow* window) {
 		glUniform3fv(glGetUniformLocation(depthShader->Program, "lightPos"), 1, &getPosition()[0]);
 
 		for (auto& s : shapes) {
-			glm::mat4 model;
+			glm::mat4 model, rotate;
 			model = glm::translate(model, s->getPosition());
-			//TODO rotate
+			model = glm::rotate(model, s->rotation_angle, s->rotation_axis);
 			//TODO scale 
 			glUniformMatrix4fv(glGetUniformLocation(depthShader->Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
 			glBindVertexArray(s->VAO);

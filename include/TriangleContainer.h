@@ -11,6 +11,7 @@ class TriangleContainer
 
 	//useful props
 public:
+	glm::vec3 world_A, world_B, world_C;
 	float* A()const;
 	float* B()const;
 	float* C()const;
@@ -18,8 +19,11 @@ public:
 	float getX(float* triangle) const;
 	float getY(float* triangle) const;
 	float getZ(float* triangle) const;
+	float getXLocal(float* triangle) const;
+	float getYLocal(float* triangle) const;
+	float getZLocal(float* triangle) const;
 
-	BoundingBox* getBoundingBox()const;
+	BoundingBox getBoundingBox()const;
 	float* getTrianglePtr()const;
 	Shape* getPrimitive()const;
 	/**
@@ -28,7 +32,7 @@ public:
 	 * \param generic_comparision - compares in a generic way
 	 * \return  the smallest/greates whatever value according to the generic_comparision and what is fetched
 	 */
-	float TriangleContainer::most(float(genericGetter)(float*), bool(*generic_comparision)(float a, float b), float offset = 0)const;
+	float TriangleContainer::most(float(genericGetter)(const glm::vec3*), bool(*generic_comparision)(float a, float b), float offset = 0)const;
 	bool equals(TriangleContainer* tc) const;
 	Point3D getMidPoint()const;
 	bool hit(Ray* r)const;

@@ -156,11 +156,10 @@ Node* Node::build(std::vector<TriangleContainer*> triangles, int depth, KD_Tree*
 {
 	kd_tree->incrSize();
 	this->triangles = triangles;
-	bbox = new BoundingBox();
 
 	if (triangles.size() == 0) return this; //return an empty node
 
-	bbox = triangles[0]->getBoundingBox(); //this is now needed anyway
+	bbox = &triangles[0]->getBoundingBox(); //this is now needed anyway
 
 	if (triangles.size() == 1) //return a node with the minimal props
 	{
@@ -215,12 +214,16 @@ Node* Node::build(std::vector<TriangleContainer*> triangles, int depth, KD_Tree*
 		Point3D p = t->getMidPoint();
 		float m = point_getters[bbox->split_axis](p), a, b, c;
 
-		if(false && m >= bb_from && m <= bb_to)
-			values->insert(m);
+		//if(m >= bb_from && m <= bb_to)
+		//	values->insert(m);
 
-		a = (t->*g)(t->A());
-		b = (t->*g)(t->B());
-		c = (t->*g)(t->C());
+		//a = (t->*g)(t->A());
+		//b = (t->*g)(t->B());
+		//c = (t->*g)(t->C());
+
+		a = t->world_A[bbox->split_axis];
+		b = t->world_B[bbox->split_axis];
+		c = t->world_C[bbox->split_axis];
 
 		if(a >= bb_from && a <= bb_to) values->insert(a);
 		if(b >= bb_from && b <= bb_to) values->insert(b);
@@ -246,7 +249,8 @@ Node* Node::build(std::vector<TriangleContainer*> triangles, int depth, KD_Tree*
 		Cube* cu = (Cube*)t->getPrimitive();
 		char* name = cu->name;
 		//according to the split axis, divide the triangles representively (using the member function pointers PTMFs!)
-		float a = (t->*g)(t->A()), b = (t->*g)(t->B()), c = (t->*g)(t->C());
+		//float a = (t->*g)(t->A()), b = (t->*g)(t->B()), c = (t->*g)(t->C());
+		float a = t->world_A[bbox->split_axis], b = t->world_B[bbox->split_axis], c = t->world_C[bbox->split_axis];
 
 		isright |= median < a;// && a <= bb_to;
 		isright |= median < b;// && b <= bb_to;
@@ -255,11 +259,6 @@ Node* Node::build(std::vector<TriangleContainer*> triangles, int depth, KD_Tree*
 		isleft |=  median > a;// && a >= bb_from;
 		isleft |=  median > b;// && b >= bb_from;
 		isleft |=  median > c;// && c >= bb_from;
-
-		if (((Cube*)t->getPrimitive())->name == "wall")
-		{
-			isleft = isleft;
-		}
 
 		//if isleft and isright -> the triangle is split -> give it to both child nodes
 		if (isleft && isright)
@@ -281,9 +280,7 @@ Node* Node::build(std::vector<TriangleContainer*> triangles, int depth, KD_Tree*
 
 	//now decide whether to keep on subdividing into further bounding boxes and nodes or to stop
 	//if only one single primitive participates in the bounding box and it is not too complex, we dont need to subdivide any further
-	if (triangles.size() <= kd_tree->getComplexityBound() ||
-		triangles.size() == triangles_left.size() && std::equal(triangles.begin(), triangles.end(), triangles_left.begin()) ||
-		triangles.size() == triangles_right.size() && std::equal(triangles.begin(), triangles.end(), triangles_right.begin())) return this;
+	if (triangles.size() <= kd_tree->getComplexityBound() || triangles_left.size() == matches || triangles_right.size() == matches) return this;
 
 	//prepare the child-Nodes
 	children[0] = new Node(this);

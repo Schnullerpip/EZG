@@ -16,6 +16,8 @@ public:
 	GLuint VAO;
 	std::vector<GLfloat> *getVertices();
 	glm::vec3 position_global;
+	float rotation_angle = 0;
+	glm::vec3 rotation_axis = glm::vec3(1, 1, 1);
 	glm::vec4 rotation;
 	glm::vec4 scalation;
 
@@ -62,7 +64,7 @@ inline void Shape::drawLine(glm::vec3 from, glm::vec3 to, Shader* s)
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(
             0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-            2,                  // size
+            3,                  // size
             GL_FLOAT,           // type
             GL_FALSE,           // normalized?
             0,                  // stride

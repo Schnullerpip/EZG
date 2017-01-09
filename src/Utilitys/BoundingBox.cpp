@@ -39,17 +39,17 @@ BoundingBox::BoundingBox(float fromX, float toX, float fromY, float toY, float f
 	recalculate();
 }
 
-void BoundingBox::expand(BoundingBox* bb)
+void BoundingBox::expand(BoundingBox& bb)
 {
 	//expand the bounds - if neccessary replace the existing bounds by the new bb one's
-	min.x = (bb->min.x < min.x) ? bb->min.x : min.x;
-	max.x = (bb->max.x > max.x) ? bb->max.x : max.x;
+	min.x = (bb.min.x < min.x) ? bb.min.x : min.x;
+	max.x = (bb.max.x > max.x) ? bb.max.x : max.x;
 
-	min.y = (bb->min.y < min.y) ? bb->min.y : min.y;
-	max.y = (bb->max.y > max.y) ? bb->max.y : max.y;
+	min.y = (bb.min.y < min.y) ? bb.min.y : min.y;
+	max.y = (bb.max.y > max.y) ? bb.max.y : max.y;
 
-	min.z = (bb->min.z < min.z) ? bb->min.z : min.z;
-	max.z = (bb->max.z > max.z) ? bb->max.z : max.z;
+	min.z = (bb.min.z < min.z) ? bb.min.z : min.z;
+	max.z = (bb.max.z > max.z) ? bb.max.z : max.z;
 
 	//recalculate width height length
 	recalculate(); 
