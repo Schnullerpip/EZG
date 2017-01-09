@@ -217,6 +217,7 @@ void OnScreenConsole::interpreteInput(std::string input)
 		ss << "Console " << (versatile ? "is quiet now" : " gives output again");
 		out(ss.str());
 		versatile = !versatile;
+		out(ss.str());
 	}
 	else if (!in.compare("ABC"))
 	{
@@ -312,8 +313,13 @@ void OnScreenConsole::interpreteInput(std::string input)
 		{
 			if (in == std::get<1>(c))
 			{
+				std::stringstream ss;
 				*std::get<0>(c) = !*std::get<0>(c);
-				out(std::get<2>(c));
+				if (std::get<2>(c))
+				{
+					ss << std::get<2>(c) << (*std::get<0>(c) ? " - ON" : " - OFF");
+					out(ss.str());
+				}
 				return;
 			}
 		}

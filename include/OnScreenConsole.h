@@ -27,7 +27,7 @@ public:
 	void out(OnScreenMessage* msg = nullptr);
 	void out(std::string message);
 
-	void registerCommand(bool*, const char*, const char* out_message);
+	void registerCommand(bool*, const char*, const char* out_message = nullptr);
 
 	void update(float deltatime);
 	void in();

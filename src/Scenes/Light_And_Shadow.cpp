@@ -9,6 +9,7 @@ bool light_follow = false;
 bool increase_normal_effect = false;
 bool decrease_normal_effect = false;
 GLfloat bump_factor = 1.f;
+int maxd = 0;
 
 void Light_And_Shadow::init(int window_width, int window_height, const char* title) {
 	Scene::init(window_width, window_height, title);
@@ -16,6 +17,25 @@ void Light_And_Shadow::init(int window_width, int window_height, const char* tit
 	glEnable(GL_DEPTH_TEST);
 	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 
+}
+
+void Light_And_Shadow::rebuildKDT()
+{
+	rebuild_kdt = false;
+	size_t com = kdt->getComplexityBound();
+
+	if(hitpoint_repr1)
+		delete hitpoint_repr1;
+	if(hitpoint_repr2)
+		delete hitpoint_repr2;
+
+	hitpoint_repr1 = nullptr;
+	hitpoint_repr2 = nullptr;
+	hitpoint_node1 = nullptr;
+	hitpoint_node2 = nullptr;
+
+	delete kdt;
+	kdt = new KD_Tree(3, shape, com);
 }
 
 Light_And_Shadow::Light_And_Shadow(Input_Handler* i, EventFeedback* fb)
@@ -53,7 +73,7 @@ Light_And_Shadow::Light_And_Shadow(Input_Handler* i, EventFeedback* fb)
 	Cube* highest_cube =new Cube(shader[3], glm::vec3(0,0,-10), 1, 1, 1);
 	Cube* cube2 =		new Cube(shader[3], glm::vec3(10,0,-10), 1, 2, 1);
 	Cube* cube3 =		new Cube(shader[3], glm::vec3(12,5,-10), 1, 1, 1);
-	Cube* cube4 = new Cube(shader[3], glm::vec3(14, 10, -10), 1, 2, 1);
+	Cube* cube4 =		new Cube(shader[3], glm::vec3(14, 10, -10), 1, 2, 1);
 	Cube* wall =		new Cube(shader[3], glm::vec3(-10,0,0), 0.4f, 8, 25);
 	Cube* unit_cube =	new Cube(shader[3], glm::vec3(10,-2,4), 1, 1, 1);
 	Cube* cube5 =		new Cube(shader[3], glm::vec3(-5,10,5), 0.5, 0.5, 0.5);
@@ -84,7 +104,7 @@ Light_And_Shadow::Light_And_Shadow(Input_Handler* i, EventFeedback* fb)
 	shape.push_back(wall_in_the_sky);
 
 	//lights
-	light.push_back(new Light(shader[1], glm::vec3(6, 5.5, 5)));
+	light.push_back(new Light(shader[1], glm::vec3(6, 5.5, 5), 0.2, 0.2, 0.2));
 
 	//start position for camera
 	cam.pos = glm::vec3(5, 20, 50);
@@ -123,18 +143,16 @@ Light_And_Shadow::Light_And_Shadow(Input_Handler* i, EventFeedback* fb)
 	ss << "MSAA -> using " << feedback->number_samples << " samples";
 	console->out(new OnScreenMessage(ss.str()));
 	console->registerCommand(&draw_kd_tree, "DRAW KD", "rendering Kd Tree");
-	console->registerCommand(&increase_maxd, "DP", "increased max depth");
-	console->registerCommand(&decrease_maxd, "DM", "decreased max depth");
+	console->registerCommand(&adjust_maxd, "DP", "adjusting ray reflection depth by mouse scroll");
 	console->registerCommand(&kd_set_complexity, "COMPLEXITY", "updating KD_TREE's complexity by mouse scroll");
 	console->registerCommand(&rebuild_kdt, "REBUILD", "Rebuilding kd tree");
+	console->registerCommand(&light_follow, "LIGHT FOLLOW", "following the point light");
 
 	//initialize the KD_Tree
 	kdt = new KD_Tree(3, shape);
 	ss.clear();
 	ss << "[Scene]::Initialized KD_Tree -> size: " << kdt->Size();
 	console->out(ss.str());
-
-
 }
 
 void renderKD_Node(Node* node, Shader* s, Camera* cam)
@@ -146,6 +164,8 @@ void renderKD_Node(Node* node, Shader* s, Camera* cam)
 	float color = node->depth * 0.13f;
 	glUniform3f(glGetUniformLocation(c->shader->Program, "lightColor"), color, color, color);
 	c->draw();
+
+	delete c;
 
 	renderKD_Node(node->left(), s, cam);
 	renderKD_Node(node->right(), s, cam);
@@ -173,6 +193,7 @@ void renderKD(Node* node, Shader* s, Camera* cam, int max_depth, Node* hit_node)
 			float color = n->depth * 0.13f;
 			glUniform3f(glGetUniformLocation(c->shader->Program, "lightColor"), color, color, color);
 			c->draw();
+			delete c;
 			nodes.pop();
 		}
 	else
@@ -224,9 +245,6 @@ void Light_And_Shadow::render(GLfloat deltaTime) {
 	}
 
 	//render the bounding boxes
-	static int maxd = 0;
-	if (increase_maxd) { maxd++; increase_maxd = false;}
-	else if (decrease_maxd && (maxd-1) > 0) { maxd--; decrease_maxd = false;}
 	if (draw_kd_tree)
 	{
 		renderKD(kdt->Root(), shader[1], &cam, maxd,hitpoint_node1);
@@ -261,43 +279,55 @@ void Light_And_Shadow::update(GLfloat deltaTime, EventFeedback* feedback) {
 	std::string message;
 	std::stringstream ss;
 
-	light_follow = input->is_pressed(GLFW_KEY_SPACE, false);
+	if(input->is_pressed(GLFW_KEY_SPACE, false))
+		light_follow = !light_follow;
+
 	increase_normal_effect = input->is_pressed(GLFW_KEY_K, false);
 	decrease_normal_effect = input->is_pressed(GLFW_KEY_J, false) && !increase_normal_effect;
-	
-	if (kd_set_complexity)
+
+	static size_t last = 12;
+	static int last_depth = 0;
+
+	if (adjust_maxd || kd_set_complexity)
 	{
 		std::stringstream ss;
-		kdt->setComplexityBound(kdt->getComplexityBound() + input->scroll_count);
-		ss << kdt->getComplexityBound() + input->scroll_count;
-		input->scroll_count = 0;
-		console->out(ss.str());
 
-
-		static size_t last = 12;
-
-		size_t com = kdt->getComplexityBound();
-		if (last != com)
+		if (kd_set_complexity)
 		{
-			last = com;
-			hitpoint_repr1 = nullptr;
-			hitpoint_repr1 = nullptr;
-			hitpoint_node1 = nullptr;
-			hitpoint_node2 = nullptr;
-			delete kdt;
-			kdt = new KD_Tree(3, shape, com);
+			int value = kdt->getComplexityBound() + input->scroll_count;
+			if (value > 0)
+			{
+				kdt->setComplexityBound(value);
+
+				size_t com = kdt->getComplexityBound();
+				if (last != com)
+				{
+					last = com;
+					ss << "KDT::Complexity -> " << kdt->getComplexityBound() + input->scroll_count;
+					console->out(ss.str());
+					ss.str("");
+					rebuildKDT();
+				}
+			}
 		}
+		if (adjust_maxd)
+		{
+			int value = maxd + input->scroll_count;
+			if (last_depth != value && value > 0)
+			{
+				last_depth = maxd = value;
+				ss << "KDT::RayTrace -> reflection depth -> " << maxd;
+				console->out(ss.str());
+				ss.str("");
+			}
+
+		}
+
+		input->scroll_count = 0;
 	}
 	else if (rebuild_kdt)
 	{
-		rebuild_kdt = false;
-		size_t com = kdt->getComplexityBound();
-		hitpoint_repr1 = nullptr;
-		hitpoint_repr1 = nullptr;
-		hitpoint_node1 = nullptr;
-		hitpoint_node2 = nullptr;
-		delete kdt;
-		kdt = new KD_Tree(3, shape, com);
+		rebuildKDT();
 	}
 
 	if (input->is_pressed(GLFW_KEY_R, false))
@@ -317,7 +347,6 @@ void Light_And_Shadow::update(GLfloat deltaTime, EventFeedback* feedback) {
 		else
 		{
 			ss << "RayCast -> no hit detected";
-			//delete hitpoint_repr1; CANT DELETE THIS?!?!?!!?	
 			hitpoint_repr1 = nullptr;
 			console->out(ss.str());
 		}
@@ -340,7 +369,6 @@ void Light_And_Shadow::update(GLfloat deltaTime, EventFeedback* feedback) {
 		else
 		{
 			ss << "RayCast -> no hit detected";
-			//delete hitpoint_repr1; CANT DELETE THIS?!?!?!!?	
 			hitpoint_repr2 = nullptr;
 			console->out(ss.str());
 		}

@@ -16,10 +16,11 @@ protected:
 	Node* hitpoint_node1, * hitpoint_node2, *last_hitpoint;
 	//will be given to console as event triggers
 	bool draw_kd_tree = false;
-	bool increase_maxd = false;
-	bool decrease_maxd = false;
+	bool adjust_maxd = false;
 	bool kd_set_complexity = false;
 	bool rebuild_kdt = false;
+
+	void rebuildKDT();
 public:
 	Light_And_Shadow(Input_Handler* i, EventFeedback* fb);
 	virtual void render(GLfloat deltaTime)override;
