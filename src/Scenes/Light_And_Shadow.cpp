@@ -140,7 +140,7 @@ Light_And_Shadow::Light_And_Shadow(Input_Handler* i, EventFeedback* fb)
 void renderKD_Node(Node* node, Shader* s, Camera* cam)
 {
 	if (!node)return;
-	Cube* c = new Cube(s, node->bbox->getPosition(), node->bbox->Width(), node->bbox->Height(), node->bbox->Depth());
+	Cube* c = new Cube(s, node->bbox.getPosition(), node->bbox.Width(), node->bbox.Height(), node->bbox.Depth());
 	cam->model_translation(c->getPosition());
 	cam->apply_to(c->shader);
 	float color = node->depth * 0.13f;
@@ -168,12 +168,13 @@ void renderKD(Node* node, Shader* s, Camera* cam, int max_depth, Node* hit_node)
 		for (int i = 0; i < max_depth && !nodes.empty(); ++i)
 		{
 			Node* n = nodes.top();
-			Cube* c = new Cube(s, n->bbox->getPosition(), n->bbox->Width(), n->bbox->Height(), n->bbox->Depth());
+			Cube* c = new Cube(s, n->bbox.getPosition(), n->bbox.Width(), n->bbox.Height(), n->bbox.Depth());
 			cam->model_translation(c->getPosition());
 			cam->apply_to(c->shader);
 			float color = n->depth * 0.13f;
 			glUniform3f(glGetUniformLocation(c->shader->Program, "lightColor"), color, color, color);
 			c->draw();
+			delete c;
 			nodes.pop();
 		}
 	else

@@ -14,9 +14,14 @@ TriangleContainer::TriangleContainer(float* triangleLocation, Shape* prim, int o
 	glm::vec3 coordinatesB = glm::vec3(getXLocal(B()), getYLocal(B()), getZLocal(B()));
 	glm::vec3 coordinatesC = glm::vec3(getXLocal(C()), getYLocal(C()), getZLocal(C()));
 
-	glm::mat4 model_A = glm::translate(model_A, primitive->getPosition());
-	glm::mat4 model_B = glm::translate(model_B, primitive->getPosition());
-	glm::mat4 model_C = glm::translate(model_C, primitive->getPosition());
+	glm::mat4 model_A;
+	glm::mat4 model_B;
+	glm::mat4 model_C;
+
+	model_A = glm::translate(model_A, primitive->getPosition());
+	model_B = glm::translate(model_B, primitive->getPosition());
+	model_C = glm::translate(model_C, primitive->getPosition());
+
 	model_A = glm::rotate(model_A, getPrimitive()->rotation_angle, getPrimitive()->rotation_axis);
 	model_B = glm::rotate(model_B, getPrimitive()->rotation_angle, getPrimitive()->rotation_axis);
 	model_C = glm::rotate(model_C, getPrimitive()->rotation_angle, getPrimitive()->rotation_axis);
@@ -192,8 +197,8 @@ bool TriangleContainer::hit(Ray* r) const
 }
 bool TriangleContainer::intersects(Ray *ray) const
 {
-	glm::vec3 edge1 = toVec(this, B()) - toVec(this, A());
-    glm::vec3 edge2 = toVec(this, C()) - toVec(this, A());
+	glm::vec3 edge1 = world_B - world_A;
+    glm::vec3 edge2 = world_C - world_A;
     
     glm::vec3 q = glm::cross(ray->Direction(), edge2);
     float det = glm::dot(edge1, q);
@@ -203,7 +208,7 @@ bool TriangleContainer::intersects(Ray *ray) const
     
     float inv_det = 1.0f/det;
     
-    glm::vec3 s = ray->Origin() - toVec(this, A());
+    glm::vec3 s = ray->Origin() - world_A;
     
     float u = glm::dot(s, q) * inv_det;
     

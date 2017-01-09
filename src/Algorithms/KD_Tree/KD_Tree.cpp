@@ -44,7 +44,7 @@ Shape* KD_Tree::visitNodes(Node* node, Ray* ray, Node** out) const
 {
 	if (!node) return nullptr;
 
-	if (node->bbox->hit(ray))
+	if (node->bbox.hit(ray))
 	{
 		if (!node->left() || !node->right())
 		{
@@ -63,7 +63,7 @@ Shape* KD_Tree::visitNodes(Node* node, Ray* ray, Node** out) const
 					}
 				}
 			}
-			if (node->bbox->surrounds(ray->beam(nearest_t)))
+			if (node->bbox.surrounds(ray->beam(nearest_t)))
 			{
 				ray->setT(nearest_t);
 				*out = node;
@@ -74,7 +74,7 @@ Shape* KD_Tree::visitNodes(Node* node, Ray* ray, Node** out) const
 		//recurse down
 
 		//which child to recurse first into?
-		int first = ray->Origin()[node->bbox->split_axis] > node->bbox->median;
+		int first = ray->Origin()[node->bbox.split_axis] > node->bbox.median;
 
 		Shape* retVal = visitNodes(node->children[first], ray, out);
 		if (!retVal)
@@ -159,7 +159,7 @@ Node* Node::build(std::vector<TriangleContainer*> triangles, int depth, KD_Tree*
 
 	if (triangles.size() == 0) return this; //return an empty node
 
-	bbox = &triangles[0]->getBoundingBox(); //this is now needed anyway
+	bbox = triangles[0]->getBoundingBox(); //this is now needed anyway
 
 	if (triangles.size() == 1) //return a node with the minimal props
 	{
@@ -170,33 +170,33 @@ Node* Node::build(std::vector<TriangleContainer*> triangles, int depth, KD_Tree*
 
 	//get a bounding box, that surrounds all the triangles
 	for (auto t : triangles) {
-		bbox->expand(t->getBoundingBox());
+		bbox.expand(t->getBoundingBox());
 	}
 
 	//now that the boundind box is complete - check if it should be trimmed, so it cant exceed the parents bounding box, or the median(split_point) of the parent
 	if (parent)
 	{
-		if (bbox->FromX() < parent->bbox->FromX())bbox->setFromX(parent->bbox->FromX());
-		if (bbox->FromY() < parent->bbox->FromY())bbox->setFromY(parent->bbox->FromY());
-		if (bbox->FromZ() < parent->bbox->FromZ())bbox->setFromZ(parent->bbox->FromZ());
+		if (bbox.FromX() < parent->bbox.FromX())bbox.setFromX(parent->bbox.FromX());
+		if (bbox.FromY() < parent->bbox.FromY())bbox.setFromY(parent->bbox.FromY());
+		if (bbox.FromZ() < parent->bbox.FromZ())bbox.setFromZ(parent->bbox.FromZ());
 
-		if (bbox->ToX() > parent->bbox->ToX())bbox->setToX(parent->bbox->ToX());
-		if (bbox->ToY() > parent->bbox->ToY())bbox->setToY(parent->bbox->ToY());
-		if (bbox->ToZ() > parent->bbox->ToZ())bbox->setToZ(parent->bbox->ToZ());
+		if (bbox.ToX() > parent->bbox.ToX())bbox.setToX(parent->bbox.ToX());
+		if (bbox.ToY() > parent->bbox.ToY())bbox.setToY(parent->bbox.ToY());
+		if (bbox.ToZ() > parent->bbox.ToZ())bbox.setToZ(parent->bbox.ToZ());
 
 		//check for exceeding the parent's median
-		if (left_child && (bbox->*to_getters[parent->bbox->split_axis])() > parent->bbox->median) {
-			(bbox->*to_setters[parent->bbox->split_axis])(parent->bbox->median);
+		if (left_child && (bbox.*to_getters[parent->bbox.split_axis])() > parent->bbox.median) {
+			(bbox.*to_setters[parent->bbox.split_axis])(parent->bbox.median);
 		}
-		else if(!left_child && (bbox->*from_getters[parent->bbox->split_axis])() < parent->bbox->median) {
-			(bbox->*from_setters[parent->bbox->split_axis])(parent->bbox->median);
+		else if(!left_child && (bbox.*from_getters[parent->bbox.split_axis])() < parent->bbox.median) {
+			(bbox.*from_setters[parent->bbox.split_axis])(parent->bbox.median);
 		}
 
-		bbox->recalculate();
+		bbox.recalculate();
 	}
 
 	//the longest axis inside the boundig box? we will split on this axis!
-	bbox->split_axis = bbox->longestAxis();
+	bbox.split_axis = bbox.longestAxis();
 
 
 	//Get the right coordinate values for the split-axis respectively (if split on xAxis -> get all the x values)
@@ -205,14 +205,14 @@ Node* Node::build(std::vector<TriangleContainer*> triangles, int depth, KD_Tree*
 	int prim_count = 0;
 
 	Shape* last = nullptr;
-	auto g = getters[bbox->split_axis];
+	auto g = getters[bbox.split_axis];
 
-	float bb_from = (bbox->*from_getters[bbox->split_axis])(), bb_to = (bbox->*to_getters[bbox->split_axis])();
+	float bb_from = (bbox.*from_getters[bbox.split_axis])(), bb_to = (bbox.*to_getters[bbox.split_axis])();
 
 	for (auto t : triangles) {
 		if (last != t->getPrimitive()) { ++prim_count; last = t->getPrimitive(); }
 		Point3D p = t->getMidPoint();
-		float m = point_getters[bbox->split_axis](p), a, b, c;
+		float m = point_getters[bbox.split_axis](p), a, b, c;
 
 		//if(m >= bb_from && m <= bb_to)
 		//	values->insert(m);
@@ -221,9 +221,9 @@ Node* Node::build(std::vector<TriangleContainer*> triangles, int depth, KD_Tree*
 		//b = (t->*g)(t->B());
 		//c = (t->*g)(t->C());
 
-		a = t->world_A[bbox->split_axis];
-		b = t->world_B[bbox->split_axis];
-		c = t->world_C[bbox->split_axis];
+		a = t->world_A[bbox.split_axis];
+		b = t->world_B[bbox.split_axis];
+		c = t->world_C[bbox.split_axis];
 
 		if(a >= bb_from && a <= bb_to) values->insert(a);
 		if(b >= bb_from && b <= bb_to) values->insert(b);
@@ -233,8 +233,8 @@ Node* Node::build(std::vector<TriangleContainer*> triangles, int depth, KD_Tree*
 	//get the median of the x||y||z-coordinates
 	std::vector<float>* vec_singles = new std::vector<float>(values->begin(), values->end());
 	nth_element(vec_singles->begin(),  vec_singles->begin() + (vec_singles->size() / 2), vec_singles->end());
-	bbox->median = (*vec_singles)[vec_singles->size() / 2];//this is the median element on the representive split axis
-	float median = bbox->median;
+	bbox.median = (*vec_singles)[vec_singles->size() / 2];//this is the median element on the representive split axis
+	float median = bbox.median;
 
 	delete values;
 	delete vec_singles;
@@ -250,7 +250,7 @@ Node* Node::build(std::vector<TriangleContainer*> triangles, int depth, KD_Tree*
 		char* name = cu->name;
 		//according to the split axis, divide the triangles representively (using the member function pointers PTMFs!)
 		//float a = (t->*g)(t->A()), b = (t->*g)(t->B()), c = (t->*g)(t->C());
-		float a = t->world_A[bbox->split_axis], b = t->world_B[bbox->split_axis], c = t->world_C[bbox->split_axis];
+		float a = t->world_A[bbox.split_axis], b = t->world_B[bbox.split_axis], c = t->world_C[bbox.split_axis];
 
 		isright |= median < a;// && a <= bb_to;
 		isright |= median < b;// && b <= bb_to;

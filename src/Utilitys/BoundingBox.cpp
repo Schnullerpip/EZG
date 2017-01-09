@@ -16,6 +16,7 @@ void BoundingBox::recalculate()
 	min.x = min.x;
 	min.y = min.y;
 	min.z = min.z;
+
 	max.x = max.x;
 	max.y = max.y;
 	max.z = max.z;
