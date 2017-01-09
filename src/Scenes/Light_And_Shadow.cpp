@@ -235,9 +235,11 @@ void Light_And_Shadow::render(GLfloat deltaTime) {
 			hitpoint_repr2->draw();
 		}
 
-		//if (hitpoint_repr1 && hitpoint_repr2) {
-		//	Shape::drawLine(hitpoint_repr1->getPosition(), hitpoint_repr2->getPosition(), shader[2]);
-		//}
+		if (hitpoint_repr1 && hitpoint_repr2) {
+			cam.model_tmp = glm::mat4();
+			cam.apply_to(shader[2]);
+			Shape::drawLine(hitpoint_repr1->getPosition(), hitpoint_repr2->getPosition(), shader[2]);
+		}
 	}
 
 
@@ -295,12 +297,12 @@ void Light_And_Shadow::update(GLfloat deltaTime, EventFeedback* feedback) {
 		Shape* target =  kdt->fireRay(&cam.pos, &cam.front, &collisoin_point, &hitpoint_node1);
 		if (target)
 		{
+			if (hitpoint_repr1) delete hitpoint_repr1;
 			hitpoint_repr1 = new Cube(shader[0], collisoin_point, 0.1, 0.1, 0.1);
 			ss << " (" << collisoin_point.x << ", " << collisoin_point.y << ", " << collisoin_point.z << ")";
 			if(hitpoint_repr2) ss << " - distance: " << glm::length(hitpoint_repr1->getPosition() - hitpoint_repr2->getPosition());
 			console->out(ss.str());
 			ss.str("");//reset the stream 
-
 		}
 		else
 		{
@@ -316,6 +318,7 @@ void Light_And_Shadow::update(GLfloat deltaTime, EventFeedback* feedback) {
 		Shape* target =  kdt->fireRay(&cam.pos, &cam.front, &collisoin_point, &hitpoint_node2);
 		if (target)
 		{
+			if (hitpoint_repr2) delete hitpoint_repr2;
 			hitpoint_repr2 = new Cube(shader[0], collisoin_point, 0.1, 0.1, 0.1);
 			ss << " (" << collisoin_point.x << ", " << collisoin_point.y << ", " << collisoin_point.z << ")";
 			if (hitpoint_repr1) {
