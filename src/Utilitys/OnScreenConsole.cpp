@@ -75,6 +75,19 @@ void OnScreenConsole::registerCommand(bool* b, const char* command, const char* 
 	references.push_back(std::make_tuple(b, command, out_message));
 }
 
+int OnScreenConsole::registerFunction(std::string command, std::string* arg_ptr, const char* out_message)
+{
+	//initialize function with empty parameters -> ""
+	functions.push_back(std::make_tuple(command, arg_ptr, out_message));
+	return functions.size() - 1;
+}
+
+std::string OnScreenConsole::argsAt(int i) const
+{
+	if (i < functions.size())
+		return std::get<2>(functions[i]);
+}
+
 void OnScreenConsole::update(float deltatime)
 {
 	if (!insert_mode && (count += deltatime) >= ki && !messages.empty())
@@ -319,6 +332,24 @@ void OnScreenConsole::interpreteInput(std::string input)
 				{
 					ss << std::get<2>(c) << (*std::get<0>(c) ? " - ON" : " - OFF");
 					out(ss.str());
+				}
+				return;
+			}
+		}
+		for (auto c : functions) //the user defined functions - if one of them were found trigger the according bool
+		{
+			size_t location = in.find((std::get<0>(c) + " "));
+			if (location != std::string::npos)
+			{
+				std::string arguments = in;
+				arguments.replace(location, std::get<0>(c).length(), "");
+				arguments.erase(0, 1);
+
+				auto a = std::get<1>(c);
+				*std::get<1>(c) = arguments;
+				if (std::get<2>(c))
+				{
+					out(std::get<2>(c));
 				}
 				return;
 			}

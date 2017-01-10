@@ -16,6 +16,8 @@ public:
 	GLuint VAO;
 	std::vector<GLfloat> *getVertices();
 	glm::vec3 position_global;
+	float rotation_angle = 0;
+	glm::vec3 rotation_axis = glm::vec3(1, 1, 1);
 	glm::vec4 rotation;
 	glm::vec4 scalation;
 

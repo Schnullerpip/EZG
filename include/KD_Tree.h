@@ -36,7 +36,7 @@ public:
  */
 struct Node
 {
-	BoundingBox* bbox = nullptr;
+	BoundingBox bbox;
 	Node* children[2] = {nullptr, nullptr};
 	Node* left()const;
 	Node* right()const;
@@ -52,7 +52,6 @@ struct Node
 
 	virtual ~Node()
 	{
-		delete bbox;
 		if(left())
 			delete left();
 		if(right())

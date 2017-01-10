@@ -23,11 +23,14 @@ class OnScreenConsole : public InputListener
 	std::string clear();
 
 	std::vector<std::tuple<bool*, const char*, const char*>> references;
+	std::vector<std::tuple<std::string, std::string*, const char*>> functions;
 public:
 	void out(OnScreenMessage* msg = nullptr);
 	void out(std::string message);
 
 	void registerCommand(bool*, const char*, const char* out_message = nullptr);
+	int registerFunction(std::string command, std::string* argptr, const char* out_message = nullptr);
+	std::string argsAt(int i)const;
 
 	void update(float deltatime);
 	void in();

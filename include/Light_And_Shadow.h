@@ -14,7 +14,11 @@ protected:
 	KD_Tree* kdt;
 	Shape* hitpoint_repr1 = nullptr, *hitpoint_repr2 = nullptr;
 	Node* hitpoint_node1, * hitpoint_node2, *last_hitpoint;
+
 	//will be given to console as event triggers
+	std::vector<Shape*> loadable_shapes_dog;
+	std::string dog_arguments;
+
 	bool draw_kd_tree = false;
 	bool adjust_maxd = false;
 	bool kd_set_complexity = false;

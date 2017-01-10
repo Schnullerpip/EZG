@@ -11,6 +11,8 @@ bool decrease_normal_effect = false;
 GLfloat bump_factor = 1.f;
 int maxd = 0;
 
+std::vector<Shape*> createDog(glm::vec3 at, Shader* s, Texture* tex, Texture* nrm);
+
 void Light_And_Shadow::init(int window_width, int window_height, const char* title) {
 	Scene::init(window_width, window_height, title);
 
@@ -69,12 +71,15 @@ Light_And_Shadow::Light_And_Shadow(Input_Handler* i, EventFeedback* fb)
 	texture.push_back(new Texture("images/grass.jpg"));
 	texture.push_back(new Texture("images/grass_NRM.png"));
 
-	Cube* floor =		new Cube(shader[3], glm::vec3(0, -4, 0), 50.f, 2.f, 50.f);
+	texture.push_back(new Texture("images/fur.jpg"));
+	texture.push_back(new Texture("images/fur_NRM.png"));
+
+	Cube* floor =		new Cube(shader[3], glm::vec3(0, -4, 0), 80.f, 2.f, 50.f);
 	Cube* highest_cube =new Cube(shader[3], glm::vec3(0,0,-10), 1, 1, 1);
 	Cube* cube2 =		new Cube(shader[3], glm::vec3(10,0,-10), 1, 2, 1);
 	Cube* cube3 =		new Cube(shader[3], glm::vec3(12,5,-10), 1, 1, 1);
-	Cube* cube4 =		new Cube(shader[3], glm::vec3(14, 10, -10), 1, 2, 1);
-	Cube* wall =		new Cube(shader[3], glm::vec3(-10,0,0), 0.4f, 8, 25);
+	Cube* cube4 = new Cube(shader[3], glm::vec3(14, 10, -10), 1, 2, 1);
+	Cube* wall =		new Cube(shader[3], glm::vec3(-10,0,0), 0.4f, 8, 25); wall->rotation_angle = 45; wall->rotation_axis = glm::vec3(0, 0, 1);
 	Cube* unit_cube =	new Cube(shader[3], glm::vec3(10,-2,4), 1, 1, 1);
 	Cube* cube5 =		new Cube(shader[3], glm::vec3(-5,10,5), 0.5, 0.5, 0.5);
 	Cube* cube6 =		new Cube(shader[3], glm::vec3(-5, 20, 30), glm::vec3(-0.5f, 0.5f, 0.5f));
@@ -82,12 +87,19 @@ Light_And_Shadow::Light_And_Shadow(Input_Handler* i, EventFeedback* fb)
 	Cube* floor_in_the_sky =new Cube(shader[3], glm::vec3(2,50,5), 10, 0.5, 10);
 	Cube* wall_in_the_sky =new Cube(shader[3], glm::vec3(-20,30,0), 1, 20, 10);
 
+
 	floor->name = "floor";
 	highest_cube->name = "highest_cube";
 	cube2->name = "cube2";
+	cube3->name = "cube3";
+	cube4->name = "cube4";
 	wall->name = "wall";
-
 	unit_cube->name = "unit_cube";
+	cube5->name = "cube5";
+	cube6->name = "cube6";
+	cube7->name = "cube7";
+	floor_in_the_sky->name = "floor_in_the_sky";
+	wall_in_the_sky->name = "wall_in_the_sky";
 
 	//objects
 	shape.push_back(floor);
@@ -102,6 +114,7 @@ Light_And_Shadow::Light_And_Shadow(Input_Handler* i, EventFeedback* fb)
 	shape.push_back(cube7);
 	shape.push_back(floor_in_the_sky);
 	shape.push_back(wall_in_the_sky);
+
 
 	//lights
 	light.push_back(new Light(shader[1], glm::vec3(6, 5.5, 5), 0.2, 0.2, 0.2));
@@ -147,6 +160,9 @@ Light_And_Shadow::Light_And_Shadow(Input_Handler* i, EventFeedback* fb)
 	console->registerCommand(&kd_set_complexity, "COMPLEXITY", "updating KD_TREE's complexity by mouse scroll");
 	console->registerCommand(&rebuild_kdt, "REBUILD", "Rebuilding kd tree");
 	console->registerCommand(&light_follow, "LIGHT FOLLOW", "following the point light");
+	//console->registerCommand(&load_dog, "LOAD DOG", "loading Dog Mesh into the scene - you should rebuild the kdt!");
+	console->registerFunction("LOAD DOG",  &dog_arguments, "loading Dog Mesh into the scene - you should rebuild the kdt!");
+	dog_arguments.clear();
 
 	//initialize the KD_Tree
 	kdt = new KD_Tree(3, shape);
@@ -158,13 +174,12 @@ Light_And_Shadow::Light_And_Shadow(Input_Handler* i, EventFeedback* fb)
 void renderKD_Node(Node* node, Shader* s, Camera* cam)
 {
 	if (!node)return;
-	Cube* c = new Cube(s, node->bbox->getPosition(), node->bbox->Width(), node->bbox->Height(), node->bbox->Depth());
+	Cube* c = new Cube(s, node->bbox.getPosition(), node->bbox.Width(), node->bbox.Height(), node->bbox.Depth());
 	cam->model_translation(c->getPosition());
 	cam->apply_to(c->shader);
 	float color = node->depth * 0.13f;
 	glUniform3f(glGetUniformLocation(c->shader->Program, "lightColor"), color, color, color);
 	c->draw();
-
 	delete c;
 
 	renderKD_Node(node->left(), s, cam);
@@ -187,7 +202,7 @@ void renderKD(Node* node, Shader* s, Camera* cam, int max_depth, Node* hit_node)
 		for (int i = 0; i < max_depth && !nodes.empty(); ++i)
 		{
 			Node* n = nodes.top();
-			Cube* c = new Cube(s, n->bbox->getPosition(), n->bbox->Width(), n->bbox->Height(), n->bbox->Depth());
+			Cube* c = new Cube(s, n->bbox.getPosition(), n->bbox.Width(), n->bbox.Height(), n->bbox.Depth());
 			cam->model_translation(c->getPosition());
 			cam->apply_to(c->shader);
 			float color = n->depth * 0.13f;
@@ -228,7 +243,7 @@ void Light_And_Shadow::render(GLfloat deltaTime) {
 	int i;
 	for ( i = 0; i < shape.size(); ++i)
 	{
-		cam.model_translation(shape[i]->getPosition());
+		cam.model(shape[i]->getPosition(), shape[i]->rotation_angle, shape[i]->rotation_axis);
 		cam.apply_to(shape[i]->shader);
 		glUniform1f(glGetUniformLocation(shape[i]->shader->Program, "bumpFactor"), bump_factor);
 
@@ -270,7 +285,6 @@ void Light_And_Shadow::render(GLfloat deltaTime) {
 		}
 	}
 
-
 	console->update(deltaTime);
 }
 
@@ -287,6 +301,18 @@ void Light_And_Shadow::update(GLfloat deltaTime, EventFeedback* feedback) {
 
 	static size_t last = 12;
 	static int last_depth = 0;
+
+	if (!dog_arguments.empty())
+	{
+		std::stringstream ss(dog_arguments);
+		glm::vec3 dogPosition;
+		ss >> dogPosition.x;
+		ss >> dogPosition.y;
+		ss >> dogPosition.z;
+		std::vector<Shape*> dog = createDog(dogPosition, shader[3], texture[6], texture[7]);
+		shape.insert(shape.end(), dog.begin(), dog.end());
+		dog_arguments = "";
+	}
 
 	if (adjust_maxd || kd_set_complexity)
 	{
@@ -325,7 +351,7 @@ void Light_And_Shadow::update(GLfloat deltaTime, EventFeedback* feedback) {
 
 		input->scroll_count = 0;
 	}
-	else if (rebuild_kdt)
+	if (rebuild_kdt)
 	{
 		rebuildKDT();
 	}
@@ -478,4 +504,70 @@ void Light_And_Shadow::draw_bbox(BoundingBox* boundingbox, Camera* cam, Shader* 
 	
   	glDeleteBuffers(1, &vbo_vertices);
   	glDeleteBuffers(1, &ibo_elements);
+}
+
+std::vector<Shape*> createDog(glm::vec3 at, Shader* s, Texture* tex, Texture* nrm)
+{
+	std::vector<Shape*> dog;
+	//dog mesh 
+	Cube* nose, *head, *neck, *body, *legFR, *legFL, *legBR, *legBL, *tail, *earL, *earR;
+	nose = new Cube(s, glm::vec3(at.x, at.y-1, at.z + 1), 3.5, 3, 5); nose->rotation_angle = glm::radians(15.f); nose->rotation_axis = glm::vec3(1, 0, 0);
+	head = new Cube(s, glm::vec3(at.x, at.y, at.z-4), 6, 5, 6);
+	neck = new Cube(s, glm::vec3(at.x, at.y-4, at.z-7), 3, 9, 3); neck->rotation_angle = 10; neck->rotation_axis = glm::vec3(1, 0, 0);
+	body = new Cube(s, glm::vec3(at.x, at.y-10, at.z-14), 7, 7, 11);body->rotation_angle = glm::radians(45.f); body->rotation_axis = glm::vec3(0, 0, 1);
+	legFL =new Cube(s, glm::vec3(at.x-3, at.y-15, at.z-7), 2, 8, 2);legFL->rotation_angle = glm::radians(-30.f);legFL->rotation_axis = glm::vec3(1, 0, 0);
+	legFR =new Cube(s, glm::vec3(at.x+3, at.y-12.5, at.z-5.5), 2, 8, 2);legFR->rotation_angle = glm::radians(-55.f);legFR->rotation_axis = glm::vec3(1, 0, 0);
+	legBL =new Cube(s, glm::vec3(at.x-3, at.y-15, at.z-22), 2, 8, 2);legBL->rotation_angle = glm::radians(30.f);legBL->rotation_axis = glm::vec3(1, 0, 0);
+	legBR =new Cube(s, glm::vec3(at.x+3, at.y-12.5, at.z-22), 2, 8, 2);legBR->rotation_angle = glm::radians(55.f);legBR->rotation_axis = glm::vec3(1, 0, 0);
+	tail = new Cube(s, glm::vec3(at.x, at.y-4, at.z-20.5), 1, 5, 1);tail->rotation_angle = glm::radians(-35.f);tail->rotation_axis = glm::vec3(1, 0, 0);
+	earL = new Cube(s, glm::vec3(at.x+3, at.y+2.5, at.z - 6), 2, 2, 1); earL->rotation_angle = glm::radians(45.f); earL->rotation_axis = glm::vec3(0, 0, 1);
+	earR = new Cube(s, glm::vec3(at.x-3, at.y+2.5, at.z - 6), 2, 2, 1); earR->rotation_angle = glm::radians(45.f); earR->rotation_axis = glm::vec3(0, 0, 1);
+
+	nose->name = "nsoe";
+	head->name = "head";
+	neck->name = "neck";
+	body->name = "body";
+	legFL->name = "legFL";
+	legBL->name = "legBL";
+	legBR->name = "BR";
+	tail ->name = "tail";
+	earL ->name = "earL";
+	earR ->name = "earR";
+
+	dog.push_back(nose);
+	dog.push_back(head);
+	dog.push_back(neck);
+	dog.push_back(body);
+	dog.push_back(legFL);
+	dog.push_back(legFR);
+	dog.push_back(legBL);
+	dog.push_back(legBR);
+	dog.push_back(tail);
+	dog.push_back(earL);
+	dog.push_back(earR);
+
+	nose->texture = tex;
+	nose->normalMap = nrm;
+	head->texture = tex;
+	head->normalMap = nrm;
+	neck->texture = tex;
+	neck->normalMap = nrm;
+	body->texture = tex;
+	body->normalMap = nrm;
+	legFL->texture = tex;
+	legFL->normalMap = nrm;
+	legFR->texture = tex;
+	legFR->normalMap = nrm;
+	legBL->texture = tex;
+	legBL->normalMap = nrm;
+	legBR->texture = tex;
+	legBR->normalMap = nrm;
+	tail->texture = tex;
+	tail->normalMap = nrm;
+	earL->texture = tex;
+	earL->normalMap = nrm;
+	earR->texture = tex;
+	earR->normalMap = nrm;
+
+	return dog;
 }
