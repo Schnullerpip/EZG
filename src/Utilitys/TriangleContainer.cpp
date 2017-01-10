@@ -134,14 +134,9 @@ Shape* TriangleContainer::getPrimitive() const
 
 Point3D TriangleContainer::getMidPoint() const
 {
-	//TODO maybe save those results, since they're needed both by getMidPoint() and getBoundingBox()
-	//float mid_x = most(getx, greatest, primitive->getPosition().x) - most(getx, smallest, primitive->getPosition().x) / 2;
-	//float mid_y = most(gety, greatest, primitive->getPosition().y) - most(gety, smallest, primitive->getPosition().y) / 2;
-	//float mid_z = most(getz, greatest, primitive->getPosition().z) - most(getz, smallest, primitive->getPosition().z) / 2;
-
-	float mid_x = getX(A()) + getX(B()) + getX(C());
-	float mid_y = getY(A()) + getY(B()) + getY(C());
-	float mid_z = getZ(A()) + getZ(B()) + getZ(C());
+	float mid_x = world_A.x + world_B.x + world_C.x;
+	float mid_y = world_A.y + world_B.y + world_C.y;
+	float mid_z = world_A.z + world_B.z + world_C.z;
 	return Point3D(mid_x/3, mid_y/3, mid_z/3);
 }
 

@@ -38,6 +38,9 @@ void Light_And_Shadow::rebuildKDT()
 
 	delete kdt;
 	kdt = new KD_Tree(3, shape, com);
+	std::stringstream ss;
+	ss << "rebuild the KD Tree -> " << kdt->Size() << " nodes -> " << kdt->Root()->triangles.size() << " triangles";
+	console->out(ss.str());
 }
 
 Light_And_Shadow::Light_And_Shadow(Input_Handler* i, EventFeedback* fb)
