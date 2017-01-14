@@ -23,28 +23,6 @@ void Light_And_Shadow::init(int window_width, int window_height, const char* tit
 
 }
 
-void Light_And_Shadow::rebuildKDT()
-{
-	rebuild_kdt = false;
-	size_t com = kdt->getComplexityBound();
-
-	if(hitpoint_repr1)
-		delete hitpoint_repr1;
-	if(hitpoint_repr2)
-		delete hitpoint_repr2;
-
-	hitpoint_repr1 = nullptr;
-	hitpoint_repr2 = nullptr;
-	hitpoint_node1 = nullptr;
-	hitpoint_node2 = nullptr;
-
-	delete kdt;
-	kdt = new KD_Tree(3, shape, com);
-	std::stringstream ss;
-	ss << "rebuild the KD Tree -> " << kdt->Size() << " nodes -> " << kdt->Root()->triangles.size() << " triangles";
-	console->out(ss.str());
-}
-
 Light_And_Shadow::Light_And_Shadow(Input_Handler* i, EventFeedback* fb)
 {
 	input = i;
@@ -169,6 +147,7 @@ Light_And_Shadow::Light_And_Shadow(Input_Handler* i, EventFeedback* fb)
 	console->registerCommand(&rebuild_kdt, "REBUILD", "Rebuilding kd tree");
 	console->registerCommand(&light_follow, "LIGHT FOLLOW", "following the point light");
 	console->registerCommand(&ray_paris, "RAY PARIS", "attempting to fire Ray at Paris KDT");
+	console->registerCommand(&kbi, "KBI", "camera is now driven by Kochanek Bartels interpolation");
 
 	console->registerFunction("LOAD DOG",  &dog_arguments, "loading Dog Mesh into the scene - you should rebuild the kdt!");
 	console->registerFunction("LOAD PARIS",  &paris_arguments, "loading Paris OBJ in seperate KDT");
@@ -179,6 +158,40 @@ Light_And_Shadow::Light_And_Shadow(Input_Handler* i, EventFeedback* fb)
 	ss.clear();
 	ss << "[Scene]::Initialized KD_Tree -> size: " << kdt->Size();
 	console->out(ss.str());
+
+	//initialize KB_Interpolation
+	std::vector<glm::vec3> checkpoints = {
+		glm::vec3(-10.f, 0.f, 80.f),
+		glm::vec3(-10.f, 0.f, 50.f),
+		glm::vec3(0.f, 5.f, 20.f),
+		glm::vec3(-3.f, 10.f, 0.f),
+		glm::vec3(0.f, 20.f, 0.f),
+		glm::vec3(13.f, 10.f, 0.f),
+		glm::vec3(5.f, 5.f, 10.f),
+		glm::vec3(0.f, 25.f, 20.f),
+		glm::vec3(2.f, 30.f, 20.f),
+		glm::vec3(10.f, 33.f, 20.f),
+		glm::vec3(8.f, 12.f, 20.f),
+		glm::vec3(8.f, 12.f, 40.f),
+		glm::vec3(8.f, 12.f, 60.f),
+	};
+	squad.add_quat(0.0f, vec3(0.f, 0.f, 1.f));
+	squad.add_quat(30.f, vec3(1.f, 0.f, 1.f));
+	squad.add_quat(20.f, vec3(0.f, 1.f, 0.f));
+	squad.add_quat(50.f, vec3(0.f, 1.f, 0.f));
+	squad.add_quat(10.f, vec3(0.f, 1.f, 1.f));
+	squad.add_quat(25.f, vec3(1.f, 0.f, 0.f));
+	squad.add_quat(40.f, vec3(1.f, 0.f, 0.f));
+	squad.add_quat(50.f, vec3(1.f, 0.f, 0.f));
+	squad.add_quat(60.f, vec3(1.f, 0.f, 0.f));
+	squad.add_quat(50.f, vec3(0.f, 0.f, 1.f));
+	squad.add_quat(120.f, vec3(0.f, 0.f, 1.f));
+	squad.add_quat(200.f, vec3(0.f, 0.f, 1.f));
+	squad.add_quat(250.f, vec3(0.f, 0.f, 1.f));
+
+	kb = new KB_Interpolation(checkpoints);
+
+
 }
 
 void Light_And_Shadow::renderKD_Node(Node* node, Shader* s, Camera* cam)
@@ -227,8 +240,20 @@ void Light_And_Shadow::render(GLfloat deltaTime) {
 	//first render shadow
 	light[0]->renderShadow(shape, window);
 
-	cam.view();
-	cam.projection_p(800,600);
+	if (kbi)
+	{
+		glm::vec3 cP = kb->step();
+		glm::mat4 view_factor;
+		view_factor = glm::toMat4(squad.step(kb->getP(), kb->getT()));
+		cam.view(glm::vec3(cP.x, cP.y, cP.z + 10), cam.front , cam.up, view_factor);
+		cam.projection_p(800, 600, 0.1f, 300.f);
+	}
+	else
+	{
+		cam.view();
+		cam.projection_p(800,600); 
+	}
+
 
 	//render the light sources
 	for (auto& l : light) { //only one though
@@ -659,4 +684,26 @@ std::vector<Shape*> createDog(glm::vec3 at, Shader* fur, Texture* tex, Texture* 
 	earR->normalMap = nrm;
 
 	return dog;
+}
+
+void Light_And_Shadow::rebuildKDT()
+{
+	rebuild_kdt = false;
+	size_t com = kdt->getComplexityBound();
+
+	if(hitpoint_repr1)
+		delete hitpoint_repr1;
+	if(hitpoint_repr2)
+		delete hitpoint_repr2;
+
+	hitpoint_repr1 = nullptr;
+	hitpoint_repr2 = nullptr;
+	hitpoint_node1 = nullptr;
+	hitpoint_node2 = nullptr;
+
+	delete kdt;
+	kdt = new KD_Tree(3, shape, com);
+	std::stringstream ss;
+	ss << "rebuild the KD Tree -> " << kdt->Size() << " nodes -> " << kdt->Root()->triangles.size() << " triangles";
+	console->out(ss.str());
 }

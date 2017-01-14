@@ -4,6 +4,8 @@
 #include "OnScreenConsole.h"
 #include "KD_Tree.h"
 #include "Cube.h"
+#include "KB_Interpolation.h"
+#include "Squad.h"
 
 class Light_And_Shadow : public Scene
 {
@@ -17,10 +19,14 @@ protected:
 	Shape* hitpoint_repr1 = nullptr, *hitpoint_repr2 = nullptr, *bbox_representation = nullptr;
 	Node* hitpoint_node1, * hitpoint_node2, *last_hitpoint;
 
+	KB_Interpolation* kb;
+	Squad squad;
+
 	//will be given to console as event triggers
 	std::vector<Shape*> loadable_shapes_dog;
 	std::string dog_arguments, paris_arguments;
 
+	bool kbi = false;
 	bool ray_paris = false;
 	bool draw_kd_tree = false;
 	bool adjust_maxd = false;
