@@ -31,6 +31,9 @@ TriangleContainer::TriangleContainer(float* triangleLocation, Shape* prim, int o
 	world_C = model_C * glm::vec4(coordinatesC, 1);
 	/*---------------------------------------------------------------------*/
 }
+TriangleContainer::TriangleContainer(glm::vec3 A, glm::vec3 B ,glm::vec3 C, Shape* primitive): primitive(primitive), triangle(nullptr), offset(0), world_A(A), world_B(B), world_C(C)
+{
+}
 
 float* TriangleContainer::A()const
 {
@@ -146,50 +149,6 @@ glm::vec3 toVec(const TriangleContainer* tr, float* t)
 }
 
 #define EPSILON 0.000001
-bool TriangleContainer::hit(Ray* r) const
-{
-	glm::vec3 e1, e2;  //Edge1, Edge2
-	glm::vec3 P, Q, T, V1 = toVec(this, A()), V2 = toVec(this, B()), V3 = toVec(this, C());
-	float det, inv_det, u, v;
-	float t;
-
-	//Find vectors for two edges sharing V1
-	e1 = V2 - V1;
-	e2 = V3 - V1;
-	//Begin calculating determinant - also used to calculate u parameter
-	P = glm::cross(r->Direction(), e2);
-	//if determinant is near zero, ray lies in plane of triangle or ray is parallel to plane of triangle
-	det = glm::dot(e1, P);
-	//NOT CULLING
-	if (det > -EPSILON && det < EPSILON) return false;
-	inv_det = 1.f / det;
-
-	//calculate distance from V1 to ray origin
-	T = r->Origin() - V1;
-
-	//Calculate u parameter and test bound
-	u = inv_det * glm::dot(T, P);
-	//The intersection lies outside of the triangle
-	if (u < 0.f || u > 1.f) return false;
-
-	//Prepare to test v parameter
-	Q = glm::cross(T, e1);
-
-	//Calculate V parameter and test bound
-	v = glm::dot(r->Direction(), e1);
-	//The intersection lies outside of the triangle
-	if (v < 0.f || u + v  > 1.f) return false;
-
-	t = glm::dot(e2, Q) * inv_det;
-
-	if (t > EPSILON) { //ray intersection
-		r->setT(t);
-		return true;
-	}
-
-	// No hit, no win
-	return false;
-}
 bool TriangleContainer::intersects(Ray *ray) const
 {
 	glm::vec3 edge1 = world_B - world_A;

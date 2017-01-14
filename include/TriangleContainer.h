@@ -38,5 +38,6 @@ public:
 	bool hit(Ray* r)const;
 	bool intersects(Ray*) const;
 	TriangleContainer(float* triangleLocation, Shape* prim, int offset = 0);
+	TriangleContainer(glm::vec3 A, glm::vec3 B, glm::vec3 C, Shape* primitive);
 	~TriangleContainer();
 };

@@ -3,6 +3,8 @@
 #include <glm/gtx/quaternion.hpp>
 #include "Text.h"
 #include <stack>
+#include "FileIn.h"
+#include <chrono>
 
 
 bool light_follow = false;
@@ -11,7 +13,7 @@ bool decrease_normal_effect = false;
 GLfloat bump_factor = 1.f;
 int maxd = 0;
 
-std::vector<Shape*> createDog(glm::vec3 at, Shader* s, Texture* tex, Texture* nrm);
+std::vector<Shape*> createDog(glm::vec3 at, Shader* fur, Texture* tex, Texture* nrm, Texture* soft, Texture* soft_nrm);
 
 void Light_And_Shadow::init(int window_width, int window_height, const char* title) {
 	Scene::init(window_width, window_height, title);
@@ -75,6 +77,9 @@ Light_And_Shadow::Light_And_Shadow(Input_Handler* i, EventFeedback* fb)
 	texture.push_back(new Texture("images/grass_NRM.png"));
 
 	texture.push_back(new Texture("images/fur.jpg"));
+	texture.push_back(new Texture("images/fur_NRM.png"));
+
+	texture.push_back(new Texture("images/soft.jpg"));
 	texture.push_back(new Texture("images/fur_NRM.png"));
 
 	Cube* floor =		new Cube(shader[3], glm::vec3(0, -4, 0), 80.f, 2.f, 50.f);
@@ -163,32 +168,32 @@ Light_And_Shadow::Light_And_Shadow(Input_Handler* i, EventFeedback* fb)
 	console->registerCommand(&kd_set_complexity, "COMPLEXITY", "updating KD_TREE's complexity by mouse scroll");
 	console->registerCommand(&rebuild_kdt, "REBUILD", "Rebuilding kd tree");
 	console->registerCommand(&light_follow, "LIGHT FOLLOW", "following the point light");
-	//console->registerCommand(&load_dog, "LOAD DOG", "loading Dog Mesh into the scene - you should rebuild the kdt!");
+	console->registerCommand(&ray_paris, "RAY PARIS", "attempting to fire Ray at Paris KDT");
+
 	console->registerFunction("LOAD DOG",  &dog_arguments, "loading Dog Mesh into the scene - you should rebuild the kdt!");
-	dog_arguments.clear();
+	console->registerFunction("LOAD PARIS",  &paris_arguments, "loading Paris OBJ in seperate KDT");
 
 	//initialize the KD_Tree
 	kdt = new KD_Tree(3, shape);
+	bbox_representation = new Cube(shader[1], glm::vec3(), 1, 1, 1);
 	ss.clear();
 	ss << "[Scene]::Initialized KD_Tree -> size: " << kdt->Size();
 	console->out(ss.str());
 }
 
-void renderKD_Node(Node* node, Shader* s, Camera* cam)
+void Light_And_Shadow::renderKD_Node(Node* node, Shader* s, Camera* cam)
 {
 	if (!node)return;
-	Cube* c = new Cube(s, node->bbox.getPosition(), node->bbox.Width(), node->bbox.Height(), node->bbox.Depth());
-	cam->model_translation(c->getPosition());
-	cam->apply_to(c->shader);
+	cam->model(node->bbox.getPosition(), 0, glm::vec3(1, 1, 1), glm::vec3(node->bbox.Width(), node->bbox.Height(), node->bbox.Depth()));
+	cam->apply_to(bbox_representation->shader);
 	float color = node->depth * 0.13f;
-	glUniform3f(glGetUniformLocation(c->shader->Program, "lightColor"), color, color, color);
-	c->draw();
-	delete c;
+	glUniform3f(glGetUniformLocation(bbox_representation->shader->Program, "lightColor"), color, color, color);
+	bbox_representation->draw();
 
 	renderKD_Node(node->left(), s, cam);
 	renderKD_Node(node->right(), s, cam);
 }
-void renderKD(Node* node, Shader* s, Camera* cam, int max_depth, Node* hit_node)
+void Light_And_Shadow::renderKD(Node* node, Shader* s, Camera* cam, int max_depth, Node* hit_node)
 {
 	std::stack<Node*> nodes;
 	Node* iter = hit_node;
@@ -205,13 +210,11 @@ void renderKD(Node* node, Shader* s, Camera* cam, int max_depth, Node* hit_node)
 		for (int i = 0; i < max_depth && !nodes.empty(); ++i)
 		{
 			Node* n = nodes.top();
-			Cube* c = new Cube(s, n->bbox.getPosition(), n->bbox.Width(), n->bbox.Height(), n->bbox.Depth());
-			cam->model_translation(c->getPosition());
-			cam->apply_to(c->shader);
+			cam->model(n->bbox.getPosition(), 0, glm::vec3(1, 1, 1), glm::vec3(n->bbox.Width(), n->bbox.Height(), n->bbox.Depth()));
+			cam->apply_to(bbox_representation->shader);
 			float color = n->depth * 0.13f;
-			glUniform3f(glGetUniformLocation(c->shader->Program, "lightColor"), color, color, color);
-			c->draw();
-			delete c;
+			glUniform3f(glGetUniformLocation(bbox_representation->shader->Program, "lightColor"), color, color, color);
+			bbox_representation->draw();
 			nodes.pop();
 		}
 	else
@@ -312,9 +315,79 @@ void Light_And_Shadow::update(GLfloat deltaTime, EventFeedback* feedback) {
 		ss >> dogPosition.x;
 		ss >> dogPosition.y;
 		ss >> dogPosition.z;
-		std::vector<Shape*> dog = createDog(dogPosition, shader[3], texture[6], texture[7]);
+		std::vector<Shape*> dog = createDog(dogPosition, shader[3], texture[6], texture[7], texture[8], texture[9]);
 		shape.insert(shape.end(), dog.begin(), dog.end());
 		dog_arguments = "";
+	}
+	else if (ray_paris)
+	{
+		ray_paris = false;
+
+		if (!paris_kdt)
+		{
+			console->out("Please first load a Paris model in, by typing in $>LOAD PARIS [complexity]");
+			return;
+		}
+
+		glm::vec3 collision_point;
+		Node* n;
+
+		ss.str("");
+		auto start = std::chrono::high_resolution_clock::now();
+		if (paris_kdt->fireRay(&cam.pos, &cam.front, &collision_point, &n))
+		{
+			auto end = std::chrono::high_resolution_clock::now();
+			ss << "Hit Paris model at (" << collision_point.x << ", " << collision_point.y << ", " << collision_point.z << ") - took " << std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() << "ns";
+		}
+		else
+		{
+			ss << "Did not hit Paris model";
+		}
+		console->out(ss.str());
+	}
+
+	if (!paris_arguments.empty())
+	{
+		static bool step1 = false, step2 = false;
+
+		std::stringstream arg(paris_arguments);
+		static int complexity;
+		static std::vector<TriangleContainer*> tris;
+		static std::ifstream input;
+
+		if (!step1)
+		{
+			step1 = true;
+			arg >> complexity;
+			console->out("1. Reading paris.obj from file");
+			input.open("objs/Paris2010_Simple.obj");
+			return;
+		}
+
+		if (!step2)
+		{
+			step2 = true;
+			ReadObjFile(input, tris);
+			console->out("2. finished parsing paris.obj");
+			console->out("3. Building the KD Tree");
+			return;
+		}
+
+		if(paris_kdt)
+			delete paris_kdt;
+
+		auto start = std::chrono::high_resolution_clock::now();
+		paris_kdt = new KD_Tree(3, tris, complexity);
+		auto end = std::chrono::high_resolution_clock::now();
+
+		std::stringstream ss;
+		ss << "4. Finished building the Paris KD Tree with " << tris.size() << " in " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms";
+		console->out(ss.str());
+		ss.str("");
+		ss << "Paris KDT - complexity:" << paris_kdt->getComplexityBound();
+		console->out(ss.str());
+		paris_arguments = "";
+		step1 = step2 = false;
 	}
 
 	if (adjust_maxd || kd_set_complexity)
@@ -509,24 +582,28 @@ void Light_And_Shadow::draw_bbox(BoundingBox* boundingbox, Camera* cam, Shader* 
   	glDeleteBuffers(1, &ibo_elements);
 }
 
-std::vector<Shape*> createDog(glm::vec3 at, Shader* s, Texture* tex, Texture* nrm)
+std::vector<Shape*> createDog(glm::vec3 at, Shader* fur, Texture* tex, Texture* nrm, Texture* soft, Texture* soft_nrm)
 {
 	std::vector<Shape*> dog;
 	//dog mesh 
-	Cube* nose, *head, *neck, *body, *legFR, *legFL, *legBR, *legBL, *tail, *earL, *earR;
-	nose = new Cube(s, glm::vec3(at.x, at.y-1, at.z + 1), 3.5, 3, 5); nose->rotation_angle = glm::radians(15.f); nose->rotation_axis = glm::vec3(1, 0, 0);
-	head = new Cube(s, glm::vec3(at.x, at.y, at.z-4), 6, 5, 6);
-	neck = new Cube(s, glm::vec3(at.x, at.y-4, at.z-7), 3, 9, 3); neck->rotation_angle = 10; neck->rotation_axis = glm::vec3(1, 0, 0);
-	body = new Cube(s, glm::vec3(at.x, at.y-10, at.z-14), 7, 7, 11);body->rotation_angle = glm::radians(45.f); body->rotation_axis = glm::vec3(0, 0, 1);
-	legFL =new Cube(s, glm::vec3(at.x-3, at.y-15, at.z-7), 2, 8, 2);legFL->rotation_angle = glm::radians(-30.f);legFL->rotation_axis = glm::vec3(1, 0, 0);
-	legFR =new Cube(s, glm::vec3(at.x+3, at.y-12.5, at.z-5.5), 2, 8, 2);legFR->rotation_angle = glm::radians(-55.f);legFR->rotation_axis = glm::vec3(1, 0, 0);
-	legBL =new Cube(s, glm::vec3(at.x-3, at.y-15, at.z-22), 2, 8, 2);legBL->rotation_angle = glm::radians(30.f);legBL->rotation_axis = glm::vec3(1, 0, 0);
-	legBR =new Cube(s, glm::vec3(at.x+3, at.y-12.5, at.z-22), 2, 8, 2);legBR->rotation_angle = glm::radians(55.f);legBR->rotation_axis = glm::vec3(1, 0, 0);
-	tail = new Cube(s, glm::vec3(at.x, at.y-4, at.z-20.5), 1, 5, 1);tail->rotation_angle = glm::radians(-35.f);tail->rotation_axis = glm::vec3(1, 0, 0);
-	earL = new Cube(s, glm::vec3(at.x+3, at.y+2.5, at.z - 6), 2, 2, 1); earL->rotation_angle = glm::radians(45.f); earL->rotation_axis = glm::vec3(0, 0, 1);
-	earR = new Cube(s, glm::vec3(at.x-3, at.y+2.5, at.z - 6), 2, 2, 1); earR->rotation_angle = glm::radians(45.f); earR->rotation_axis = glm::vec3(0, 0, 1);
+	Cube* nose, *nosePit, *head, *neck, *body, *legFR, *legFL, *legBR, *legBL, *tail, *earL, *earR, *eyeL, *eyeR;
+	nose = new Cube(fur, glm::vec3(at.x, at.y-1, at.z + 1), 3.5, 3, 5); nose->rotation_angle = glm::radians(15.f); nose->rotation_axis = glm::vec3(1, 0, 0);
+	eyeL = new Cube(fur, glm::vec3(at.x-1, at.y+1, at.z-1), 1, 2, 1); 
+	eyeR = new Cube(fur, glm::vec3(at.x+1, at.y+1, at.z-1), 1, 2, 1); 
+	nosePit = new Cube(fur, glm::vec3(at.x, at.y-0.5, at.z + 3.5), 2, 1, 1);
+	head = new Cube(fur, glm::vec3(at.x, at.y, at.z-4), 6, 5, 6);
+	neck = new Cube(fur, glm::vec3(at.x, at.y-4, at.z-7), 3, 9, 3); neck->rotation_angle = 10; neck->rotation_axis = glm::vec3(1, 0, 0);
+	body = new Cube(fur, glm::vec3(at.x, at.y-10, at.z-14), 7, 7, 11);body->rotation_angle = glm::radians(45.f); body->rotation_axis = glm::vec3(0, 0, 1);
+	legFL =new Cube(fur, glm::vec3(at.x-3, at.y-15, at.z-7), 2, 8, 2);legFL->rotation_angle = glm::radians(-30.f);legFL->rotation_axis = glm::vec3(1, 0, 0);
+	legFR =new Cube(fur, glm::vec3(at.x+3, at.y-12.5, at.z-5.5), 2, 8, 2);legFR->rotation_angle = glm::radians(-55.f);legFR->rotation_axis = glm::vec3(1, 0, 0);
+	legBL =new Cube(fur, glm::vec3(at.x-3, at.y-15, at.z-22), 2, 8, 2);legBL->rotation_angle = glm::radians(30.f);legBL->rotation_axis = glm::vec3(1, 0, 0);
+	legBR =new Cube(fur, glm::vec3(at.x+3, at.y-12.5, at.z-22), 2, 8, 2);legBR->rotation_angle = glm::radians(55.f);legBR->rotation_axis = glm::vec3(1, 0, 0);
+	tail = new Cube(fur, glm::vec3(at.x, at.y-4, at.z-20.5), 1, 5, 1);tail->rotation_angle = glm::radians(-35.f);tail->rotation_axis = glm::vec3(1, 0, 0);
+	earL = new Cube(fur, glm::vec3(at.x+3, at.y+2.5, at.z - 6), 2, 2, 1); earL->rotation_angle = glm::radians(45.f); earL->rotation_axis = glm::vec3(0, 0, 1);
+	earR = new Cube(fur, glm::vec3(at.x-3, at.y+2.5, at.z - 6), 2, 2, 1); earR->rotation_angle = glm::radians(45.f); earR->rotation_axis = glm::vec3(0, 0, 1);
 
-	nose->name = "nsoe";
+	nose->name = "nose";
+	nosePit->name = "nosePit";
 	head->name = "head";
 	neck->name = "neck";
 	body->name = "body";
@@ -538,6 +615,9 @@ std::vector<Shape*> createDog(glm::vec3 at, Shader* s, Texture* tex, Texture* nr
 	earR ->name = "earR";
 
 	dog.push_back(nose);
+	dog.push_back(eyeL);
+	dog.push_back(eyeR);
+	dog.push_back(nosePit);
 	dog.push_back(head);
 	dog.push_back(neck);
 	dog.push_back(body);
@@ -551,6 +631,12 @@ std::vector<Shape*> createDog(glm::vec3 at, Shader* s, Texture* tex, Texture* nr
 
 	nose->texture = tex;
 	nose->normalMap = nrm;
+	eyeL->texture = soft;
+	eyeL->normalMap = soft_nrm;
+	eyeR->texture = soft;
+	eyeR->normalMap = soft_nrm;
+	nosePit->texture = soft;
+	nosePit->normalMap = soft_nrm;
 	head->texture = tex;
 	head->normalMap = nrm;
 	neck->texture = tex;

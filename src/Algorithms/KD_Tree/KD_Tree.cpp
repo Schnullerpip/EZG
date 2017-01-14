@@ -3,7 +3,6 @@
 #include <iostream>
 #include <algorithm>
 #include <set>
-#include "Cube.h"
 
 size_t KD_Tree::Size() const
 {
@@ -106,6 +105,15 @@ KD_Tree::KD_Tree(unsigned dimension, std::vector<Shape*> shapes, size_t complexi
 	}
 	//build the KD-Tree
 	root->build(triangles, 0, this);
+}
+
+KD_Tree::KD_Tree(unsigned dimension, std::vector<TriangleContainer*> tris, size_t complexity):k(dimension), complexits_bound(complexity)
+{
+	const unsigned offset = 14; //the offset in the cube's vertice data (also includes color, normals etc.)
+	root = new Node();
+
+	//build the KD-Tree
+	root->build(tris, 0, this);
 }
 
 typedef float(TriangleContainer::*TC_Getter)(float*)const;
@@ -239,10 +247,7 @@ Node* Node::build(std::vector<TriangleContainer*> triangles, int depth, KD_Tree*
 	for (auto t : triangles)
 	{
 		bool isleft = false, isright = false;
-		Cube* cu = (Cube*)t->getPrimitive();
-		char* name = cu->name;
 		//according to the split axis, divide the triangles representively (using the member function pointers PTMFs!)
-		//float a = (t->*g)(t->A()), b = (t->*g)(t->B()), c = (t->*g)(t->C());
 		float a = t->world_A[bbox.split_axis], b = t->world_B[bbox.split_axis], c = t->world_C[bbox.split_axis];
 
 		isright |= median < a;// && a <= bb_to;
