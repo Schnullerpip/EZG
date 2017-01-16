@@ -40,4 +40,4 @@ void main()
 	TangentLightPos = TBN * lightPosition;
 	TangentViewPos = TBN * cameraPosition;
 	TangentFragPos = TBN * FragPos;
-}
+} 
