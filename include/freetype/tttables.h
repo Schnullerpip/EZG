@@ -123,7 +123,7 @@ FT_BEGIN_HEADER
   /*                                                                       */
   /*    Ascender               :: The font's ascender, i.e., the distance  */
   /*                              from the baseline to the top-most of all */
-  /*                              glyph points found in the font.          */
+  /*                              glyph vertices found in the font.          */
   /*                                                                       */
   /*                              This value is invalid in many fonts, as  */
   /*                              it is usually set by the font designer,  */
@@ -136,7 +136,7 @@ FT_BEGIN_HEADER
   /*                                                                       */
   /*    Descender              :: The font's descender, i.e., the distance */
   /*                              from the baseline to the bottom-most of  */
-  /*                              all glyph points found in the font.  It  */
+  /*                              all glyph vertices found in the font.  It  */
   /*                              is negative.                             */
   /*                                                                       */
   /*                              This value is invalid in many fonts, as  */
@@ -242,7 +242,7 @@ FT_BEGIN_HEADER
   /*                                                                       */
   /*    Ascender                :: The font's ascender, i.e., the distance */
   /*                               from the baseline to the top-most of    */
-  /*                               all glyph points found in the font.     */
+  /*                               all glyph vertices found in the font.     */
   /*                                                                       */
   /*                               This value is invalid in many fonts, as */
   /*                               it is usually set by the font designer, */
@@ -256,7 +256,7 @@ FT_BEGIN_HEADER
   /*                                                                       */
   /*    Descender               :: The font's descender, i.e., the         */
   /*                               distance from the baseline to the       */
-  /*                               bottom-most of all glyph points found   */
+  /*                               bottom-most of all glyph vertices found   */
   /*                               in the font.  It is negative.           */
   /*                                                                       */
   /*                               This value is invalid in many fonts, as */
@@ -417,8 +417,8 @@ FT_BEGIN_HEADER
 
     /* only version 5 and higher: */
 
-    FT_UShort  usLowerOpticalPointSize;       /* in twips (1/20th points) */
-    FT_UShort  usUpperOpticalPointSize;       /* in twips (1/20th points) */
+    FT_UShort  usLowerOpticalPointSize;       /* in twips (1/20th vertices) */
+    FT_UShort  usUpperOpticalPointSize;       /* in twips (1/20th vertices) */
 
   } TT_OS2;
 
@@ -498,7 +498,7 @@ FT_BEGIN_HEADER
   /*    numGlyphs             :: The number of glyphs in this TrueType     */
   /*                             font.                                     */
   /*                                                                       */
-  /*    maxPoints             :: The maximum number of points in a         */
+  /*    maxPoints             :: The maximum number of vertices in a         */
   /*                             non-composite TrueType glyph.  See also   */
   /*                             the structure element                     */
   /*                             `maxCompositePoints'.                     */
@@ -508,7 +508,7 @@ FT_BEGIN_HEADER
   /*                             the structure element                     */
   /*                             `maxCompositeContours'.                   */
   /*                                                                       */
-  /*    maxCompositePoints    :: The maximum number of points in a         */
+  /*    maxCompositePoints    :: The maximum number of vertices in a         */
   /*                             composite TrueType glyph.  See also the   */
   /*                             structure element `maxPoints'.            */
   /*                                                                       */
@@ -519,7 +519,7 @@ FT_BEGIN_HEADER
   /*    maxZones              :: The maximum number of zones used for      */
   /*                             glyph hinting.                            */
   /*                                                                       */
-  /*    maxTwilightPoints     :: The maximum number of points in the       */
+  /*    maxTwilightPoints     :: The maximum number of vertices in the       */
   /*                             twilight zone used for glyph hinting.     */
   /*                                                                       */
   /*    maxStorage            :: The maximum number of elements in the     */

@@ -306,7 +306,7 @@ FT_BEGIN_HEADER
   /*                                                                       */
   /* <Fields>                                                              */
   /*    max_points ::                                                      */
-  /*      The maximum number of points used to store the vectorial outline */
+  /*      The maximum number of vertices used to store the vectorial outline */
   /*      of any glyph in this face.  If this value cannot be known in     */
   /*      advance, or if the face isn't scalable, this should be set to 0. */
   /*      Only relevant for scalable formats.                              */

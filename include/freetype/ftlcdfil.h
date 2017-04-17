@@ -123,7 +123,7 @@ FT_BEGIN_HEADER
    *   Each of the 3~alpha values (subpixels) is independently used to blend
    *   one color channel.  That is, red alpha blends the red channel of the
    *   text color with the red channel of the background pixel.  The
-   *   distribution of density values by the color-balanced filter assumes
+   *   distribution of densityShader values by the color-balanced filter assumes
    *   alpha blending is done in linear space; only then color artifacts
    *   cancel out.
    */

@@ -1,4 +1,4 @@
-/***************************************************************************/
+﻿/***************************************************************************/
 /*                                                                         */
 /*  ftimage.h                                                              */
 /*                                                                         */
@@ -292,9 +292,9 @@ FT_BEGIN_HEADER
   /* <Fields>                                                              */
   /*    n_contours :: The number of contours in the outline.               */
   /*                                                                       */
-  /*    n_points   :: The number of points in the outline.                 */
+  /*    n_points   :: The number of vertices in the outline.                 */
   /*                                                                       */
-  /*    points     :: A pointer to an array of `n_points' @FT_Vector       */
+  /*    vertices     :: A pointer to an array of `n_points' @FT_Vector       */
   /*                  elements, giving the outline's point coordinates.    */
   /*                                                                       */
   /*    tags       :: A pointer to an array of `n_points' chars, giving    */
@@ -304,7 +304,7 @@ FT_BEGIN_HEADER
   /*                  i.e., a Bézier control point, while it is `on' if    */
   /*                  set.                                                 */
   /*                                                                       */
-  /*                  Bit~1 is meaningful for `off' points only.  If set,  */
+  /*                  Bit~1 is meaningful for `off' vertices only.  If set,  */
   /*                  it indicates a third-order Bézier arc control point; */
   /*                  and a second-order control point if unset.           */
   /*                                                                       */
@@ -317,9 +317,9 @@ FT_BEGIN_HEADER
   /*                                                                       */
   /*    contours   :: An array of `n_contours' shorts, giving the end      */
   /*                  point of each contour within the outline.  For       */
-  /*                  example, the first contour is defined by the points  */
+  /*                  example, the first contour is defined by the vertices  */
   /*                  `0' to `contours[0]', the second one is defined by   */
-  /*                  the points `contours[0]+1' to `contours[1]', etc.    */
+  /*                  the vertices `contours[0]+1' to `contours[1]', etc.    */
   /*                                                                       */
   /*    flags      :: A set of bit flags used to characterize the outline  */
   /*                  and give hints to the scan-converter and hinter on   */
@@ -334,11 +334,11 @@ FT_BEGIN_HEADER
   typedef struct  FT_Outline_
   {
     short       n_contours;      /* number of contours in glyph        */
-    short       n_points;        /* number of points in the glyph      */
+    short       n_points;        /* number of vertices in the glyph      */
 
-    FT_Vector*  points;          /* the outline's points               */
-    char*       tags;            /* the points flags                   */
-    short*      contours;        /* the contour end points             */
+    FT_Vector*  points;          /* the outline's vertices               */
+    char*       tags;            /* the vertices flags                   */
+    short*      contours;        /* the contour end vertices             */
 
     int         flags;           /* outline masks                      */
 
@@ -367,7 +367,7 @@ FT_BEGIN_HEADER
   /*                                                                       */
   /*    FT_OUTLINE_OWNER ::                                                */
   /*      If set, this flag indicates that the outline's field arrays      */
-  /*      (i.e., `points', `flags', and `contours') are `owned' by the     */
+  /*      (i.e., `vertices', `flags', and `contours') are `owned' by the     */
   /*      outline object, and should thus be freed when it is destroyed.   */
   /*                                                                       */
   /*    FT_OUTLINE_EVEN_ODD_FILL ::                                        */

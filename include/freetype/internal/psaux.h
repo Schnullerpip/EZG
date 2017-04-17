@@ -534,7 +534,7 @@ FT_BEGIN_HEADER
   /*                                                                       */
   /*    current      :: The current glyph outline.                         */
   /*                                                                       */
-  /*    max_points   :: maximum points in builder outline                  */
+  /*    max_points   :: maximum vertices in builder outline                  */
   /*                                                                       */
   /*    max_contours :: Maximum number of contours in builder outline.     */
   /*                                                                       */
@@ -551,13 +551,13 @@ FT_BEGIN_HEADER
   /*    parse_state  :: An enumeration which controls the charstring       */
   /*                    parsing state.                                     */
   /*                                                                       */
-  /*    load_points  :: If this flag is not set, no points are loaded.     */
+  /*    load_points  :: If this flag is not set, no vertices are loaded.     */
   /*                                                                       */
   /*    no_recurse   :: Set but not used.                                  */
   /*                                                                       */
   /*    metrics_only :: A boolean indicating that we only want to compute  */
   /*                    the metrics of a given glyph, not load all of its  */
-  /*                    points.                                            */
+  /*                    vertices.                                            */
   /*                                                                       */
   /*    funcs        :: An array of function pointers for the builder.     */
   /*                                                                       */

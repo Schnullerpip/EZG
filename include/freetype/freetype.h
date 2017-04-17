@@ -1,4 +1,4 @@
-/***************************************************************************/
+﻿/***************************************************************************/
 /*                                                                         */
 /*  freetype.h                                                             */
 /*                                                                         */
@@ -339,7 +339,7 @@ FT_BEGIN_HEADER
   /*              strike.                                                  */
   /*                                                                       */
   /*    size   :: The nominal size of the strike in 26.6 fractional        */
-  /*              points.  This field is not very useful.                  */
+  /*              vertices.  This field is not very useful.                  */
   /*                                                                       */
   /*    x_ppem :: The horizontal ppem (nominal width) in 26.6 fractional   */
   /*              pixels.                                                  */
@@ -2502,15 +2502,15 @@ FT_BEGIN_HEADER
   /*                                                                       */
   /* <Description>                                                         */
   /*    This function calls @FT_Request_Size to request the nominal size   */
-  /*    (in points).                                                       */
+  /*    (in vertices).                                                       */
   /*                                                                       */
   /* <InOut>                                                               */
   /*    face            :: A handle to a target face object.               */
   /*                                                                       */
   /* <Input>                                                               */
-  /*    char_width      :: The nominal width, in 26.6 fractional points.   */
+  /*    char_width      :: The nominal width, in 26.6 fractional vertices.   */
   /*                                                                       */
-  /*    char_height     :: The nominal height, in 26.6 fractional points.  */
+  /*    char_height     :: The nominal height, in 26.6 fractional vertices.  */
   /*                                                                       */
   /*    horz_resolution :: The horizontal resolution in dpi.               */
   /*                                                                       */
@@ -3241,7 +3241,7 @@ FT_BEGIN_HEADER
   /* <Input>                                                               */
   /*    face       :: A handle to a source face object.                    */
   /*                                                                       */
-  /*    point_size :: The point size in 16.16 fractional points.           */
+  /*    point_size :: The point size in 16.16 fractional vertices.           */
   /*                                                                       */
   /*    degree     :: The degree of tightness.  Increasingly negative      */
   /*                  values represent tighter track kerning, while        */
@@ -3249,7 +3249,7 @@ FT_BEGIN_HEADER
   /*                  kerning.  Value zero means no track kerning.         */
   /*                                                                       */
   /* <Output>                                                              */
-  /*    akerning   :: The kerning in 16.16 fractional points, to be        */
+  /*    akerning   :: The kerning in 16.16 fractional vertices, to be        */
   /*                  uniformly applied between all glyphs.                */
   /*                                                                       */
   /* <Return>                                                              */
@@ -3771,7 +3771,7 @@ FT_BEGIN_HEADER
   /*                                                                       */
   /*    Adobe and MS decided to support IVS with a new cmap subtable       */
   /*    (format~14).  It is an odd subtable because it is not a mapping of */
-  /*    input code points to glyphs, but contains lists of all variants    */
+  /*    input code vertices to glyphs, but contains lists of all variants    */
   /*    supported by the font.                                             */
   /*                                                                       */
   /*    A variant may be either `default' or `non-default'.  A default     */
@@ -3877,7 +3877,7 @@ FT_BEGIN_HEADER
   /*      A handle to the source face object.                              */
   /*                                                                       */
   /* <Return>                                                              */
-  /*    A pointer to an array of selector code points, or NULL if there is */
+  /*    A pointer to an array of selector code vertices, or NULL if there is */
   /*    no valid variant selector cmap subtable.                           */
   /*                                                                       */
   /* <Note>                                                                */
@@ -3909,7 +3909,7 @@ FT_BEGIN_HEADER
   /*      The character codepoint in Unicode.                              */
   /*                                                                       */
   /* <Return>                                                              */
-  /*    A pointer to an array of variant selector code points that are     */
+  /*    A pointer to an array of variant selector code vertices that are     */
   /*    active for the given character, or NULL if the corresponding list  */
   /*    is empty.                                                          */
   /*                                                                       */
@@ -3943,7 +3943,7 @@ FT_BEGIN_HEADER
   /*      The variant selector code point in Unicode.                      */
   /*                                                                       */
   /* <Return>                                                              */
-  /*    A list of all the code points that are specified by this selector  */
+  /*    A list of all the code vertices that are specified by this selector  */
   /*    (both default and non-default codes are returned) or NULL if there */
   /*    is no valid cmap or the variant selector is invalid.               */
   /*                                                                       */

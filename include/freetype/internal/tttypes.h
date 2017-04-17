@@ -1414,11 +1414,11 @@ FT_BEGIN_HEADER
   /*  <Fields>                                                             */
   /*     memory       :: A handle to the memory manager.                   */
   /*                                                                       */
-  /*     max_points   :: The maximum size in points of the zone.           */
+  /*     max_points   :: The maximum size in vertices of the zone.           */
   /*                                                                       */
   /*     max_contours :: Max size in links contours of the zone.           */
   /*                                                                       */
-  /*     n_points     :: The current number of points in the zone.         */
+  /*     n_points     :: The current number of vertices in the zone.         */
   /*                                                                       */
   /*     n_contours   :: The current number of contours in the zone.       */
   /*                                                                       */
@@ -1429,7 +1429,7 @@ FT_BEGIN_HEADER
   /*                                                                       */
   /*     tags         :: The point control tags.                           */
   /*                                                                       */
-  /*     contours     :: The contours end points.                          */
+  /*     contours     :: The contours end vertices.                          */
   /*                                                                       */
   /*     first_point  :: Offset of the current subglyph's first point.     */
   /*                                                                       */
@@ -1438,7 +1438,7 @@ FT_BEGIN_HEADER
     FT_Memory   memory;
     FT_UShort   max_points;
     FT_Short    max_contours;
-    FT_UShort   n_points;    /* number of points in zone    */
+    FT_UShort   n_points;    /* number of vertices in zone    */
     FT_Short    n_contours;  /* number of contours          */
 
     FT_Vector*  org;         /* original point coordinates  */
@@ -1446,7 +1446,7 @@ FT_BEGIN_HEADER
     FT_Vector*  orus;        /* original (unscaled) point coordinates */
 
     FT_Byte*    tags;        /* current touch flags         */
-    FT_UShort*  contours;    /* contour end points          */
+    FT_UShort*  contours;    /* contour end vertices          */
 
     FT_UShort   first_point; /* offset of first (#0) point  */
 

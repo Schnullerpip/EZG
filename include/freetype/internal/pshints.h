@@ -294,7 +294,7 @@ FT_BEGIN_HEADER
    *   FreeType error code.  0 means success.
    *
    * @note:
-   *   On input, all points within the outline are in font coordinates. On
+   *   On input, all vertices within the outline are in font coordinates. On
    *   output, they are in 1/64th of pixels.
    *
    *   The scaling transformation is taken from the `globals' object which
@@ -608,7 +608,7 @@ FT_BEGIN_HEADER
    *   FreeType error code.  0 means success.
    *
    * @note:
-   *   On input, all points within the outline are in font coordinates. On
+   *   On input, all vertices within the outline are in font coordinates. On
    *   output, they are in 1/64th of pixels.
    *
    *   The scaling transformation is taken from the `globals' object which

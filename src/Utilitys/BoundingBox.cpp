@@ -12,7 +12,7 @@ void BoundingBox::recalculate()
 	origin.y = min.y + height / 2;
 	origin.z = min.z + depth / 2;
 
-	//recalculate the min and max points (important for intersection testing)
+	//recalculate the min and max vertices (important for intersection testing)
 	min.x = min.x;
 	min.y = min.y;
 	min.z = min.z;

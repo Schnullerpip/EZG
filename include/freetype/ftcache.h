@@ -398,7 +398,7 @@ FT_BEGIN_HEADER
   /*                                                                       */
   /* <Description>                                                         */
   /*    A structure used to describe a given character size in either      */
-  /*    pixels or points to the cache manager.  See                        */
+  /*    pixels or vertices to the cache manager.  See                        */
   /*    @FTC_Manager_LookupSize.                                           */
   /*                                                                       */
   /* <Fields>                                                              */
@@ -410,7 +410,7 @@ FT_BEGIN_HEADER
   /*                                                                       */
   /*    pixel   :: A Boolean.  If 1, the `width' and `height' fields are   */
   /*               interpreted as integer pixel character sizes.           */
-  /*               Otherwise, they are expressed as 1/64th of points.      */
+  /*               Otherwise, they are expressed as 1/64th of vertices.      */
   /*                                                                       */
   /*    x_res   :: Only used when `pixel' is value~0 to indicate the       */
   /*               horizontal resolution in dpi.                           */

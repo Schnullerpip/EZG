@@ -13,9 +13,9 @@ protected:
 	void init(int window_width, int window_height, const char* title = "")override;
 	void renderKD_Node(Node* node, Shader* s, Camera* cam);
 	void renderKD(Node* node, Shader* s, Camera* cam, int max_depth, Node* hit_node);
+	KD_Tree* kdt, *paris_kdt;
 	Input_Handler* input;
 	OnScreenConsole* console;
-	KD_Tree* kdt, *paris_kdt;
 	Shape* hitpoint_repr1 = nullptr, *hitpoint_repr2 = nullptr, *bbox_representation = nullptr;
 	Node* hitpoint_node1, * hitpoint_node2, *last_hitpoint;
 

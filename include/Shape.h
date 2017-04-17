@@ -71,7 +71,7 @@ inline void Shape::drawLine(glm::vec3 from, glm::vec3 to, Shader* s, float lineW
             0,                  // stride
             (void*)0            // array buffer offset
         );
-	glDrawArrays(GL_LINES, 0, 2); // 2 indices for the 2 end points of 1 line
+	glDrawArrays(GL_LINES, 0, 2); // 2 indices for the 2 end vertices of 1 line
 
 	glDisableVertexAttribArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER,0);

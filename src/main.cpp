@@ -17,6 +17,7 @@
 #include "Plane.h"
 #include "Light_And_Shadow.h"
 #include "Input_Handler.h"
+#include "SPG_Scene.h"
 
 
 // Function prototypes
@@ -58,13 +59,14 @@ int main()
 		feedback.hints.clear();
 
 		// Create a GLFWwindow object that we can use for GLFW's functions
-		window = glfwCreateWindow(WIDTH, HEIGHT, "LearnOpenGL", nullptr, nullptr);
+		window = glfwCreateWindow(WIDTH, HEIGHT, "SPG", nullptr, nullptr);
 		glfwMakeContextCurrent(window);
 
 		//soonest possible moment for enabling gl-specifics
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_MULTISAMPLE);
 		glEnable(GL_BLEND);
+		glEnable(GL_TEXTURE_3D);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 		// Set the required callback functions
@@ -85,10 +87,11 @@ int main()
 		glViewport(0, 0, width, height);
 
 
-		Scene* scene = new Light_And_Shadow(&input, &feedback);
+		//Scene* scene = new Light_And_Shadow(&input, &feedback);
+		Scene* scene = new SPG_Scene(&input, &feedback);
 		//Scene* scene = new Test_Scene();
 
-	  // Game loop
+		//Game loop
 		//glEnable(GL_CULL_FACE);
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		GLfloat last = 0, now = 0, delta = 0;
@@ -96,11 +99,12 @@ int main()
 		{
 			now = glfwGetTime();
 			delta = now - last;
+
 			// Check if any events have been activiated (key pressed, mouse moved etc.) and call corresponding response functions
 			glfwPollEvents();
+
 			// Render
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-			// Draw our first triangle
 
 			scene->update(delta, &feedback);
 			scene->render(delta);

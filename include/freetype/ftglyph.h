@@ -1,4 +1,4 @@
-/***************************************************************************/
+﻿/***************************************************************************/
 /*                                                                         */
 /*  ftglyph.h                                                              */
 /*                                                                         */
@@ -341,7 +341,7 @@ FT_BEGIN_HEADER
   /*                                                                       */
   /* <Description>                                                         */
   /*    Return a glyph's `control box'.  The control box encloses all the  */
-  /*    outline's points, including Bézier control points.  Though it      */
+  /*    outline's vertices, including Bézier control vertices.  Though it      */
   /*    coincides with the exact bounding box for most glyphs, it can be   */
   /*    slightly larger in some situations (like when rotating an outline  */
   /*    that contains Bézier outside arcs).                                */
@@ -500,7 +500,7 @@ FT_BEGIN_HEADER
   /*                                                                       */
   /*          ...                                                          */
   /*                                                                       */
-  /*          // after this call, `bitmap' no longer points into           */
+  /*          // after this call, `bitmap' no longer vertices into           */
   /*          // the `glyphs' array (and the old value isn't destroyed)    */
   /*          FT_Glyph_To_Bitmap( &bitmap, FT_RENDER_MODE_MONO, 0, 0 );    */
   /*                                                                       */

@@ -27,7 +27,7 @@ public:
 	float* getTrianglePtr()const;
 	Shape* getPrimitive()const;
 	/**
-	 * \get the most (smallest, greatest..) of all the points (A, B, C) and determine which coordinate value (x, y, or z) are compared
+	 * \get the most (smallest, greatest..) of all the vertices (A, B, C) and determine which coordinate value (x, y, or z) are compared
 	 * \param genericGetter - determines whether the x y or z coordinate are fetched
 	 * \param generic_comparision - compares in a generic way
 	 * \return  the smallest/greates whatever value according to the generic_comparision and what is fetched

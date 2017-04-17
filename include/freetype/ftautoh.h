@@ -472,7 +472,7 @@ FT_BEGIN_HEADER
    *   See the description of the CFF driver for algorithmic details.  Total
    *   consistency with the CFF driver is currently not achieved because the
    *   emboldening method differs and glyphs must be scaled down on the
-   *   Y-axis to keep outline points inside their precomputed blue zones.
+   *   Y-axis to keep outline vertices inside their precomputed blue zones.
    *   The smaller the size (especially 9ppem and down), the higher the loss
    *   of emboldening versus the CFF driver.
    *

@@ -50,8 +50,8 @@ FT_BEGIN_HEADER
   typedef struct  FT_GlyphLoadRec_
   {
     FT_Outline   outline;       /* outline                   */
-    FT_Vector*   extra_points;  /* extra points table        */
-    FT_Vector*   extra_points2; /* second extra points table */
+    FT_Vector*   extra_points;  /* extra vertices table        */
+    FT_Vector*   extra_points2; /* second extra vertices table */
     FT_UInt      num_subglyphs; /* number of subglyphs       */
     FT_SubGlyph  subglyphs;     /* subglyphs                 */
 
@@ -79,7 +79,7 @@ FT_BEGIN_HEADER
   FT_GlyphLoader_New( FT_Memory        memory,
                       FT_GlyphLoader  *aloader );
 
-  /* add an extra points table to a glyph loader */
+  /* add an extra vertices table to a glyph loader */
   FT_BASE( FT_Error )
   FT_GlyphLoader_CreateExtra( FT_GlyphLoader  loader );
 
@@ -138,7 +138,7 @@ FT_BEGIN_HEADER
   FT_BASE( void )
   FT_GlyphLoader_Add( FT_GlyphLoader  loader );
 
-  /* copy points from one glyph loader to another */
+  /* copy vertices from one glyph loader to another */
   FT_BASE( FT_Error )
   FT_GlyphLoader_CopyPoints( FT_GlyphLoader  target,
                              FT_GlyphLoader  source );

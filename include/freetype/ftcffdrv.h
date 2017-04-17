@@ -224,9 +224,9 @@ FT_BEGIN_HEADER
    *   }
    *
    *   and piecewise linear in-between.  At configuration time, these four
-   *   control points can be set with the macro
+   *   control vertices can be set with the macro
    *   `CFF_CONFIG_OPTION_DARKENING_PARAMETERS'.  At runtime, the control
-   *   points can be changed using the `darkening-parameters' property, as
+   *   vertices can be changed using the `darkening-parameters' property, as
    *   the following example demonstrates.
    *
    *   {

@@ -1,4 +1,4 @@
-/***************************************************************************/
+﻿/***************************************************************************/
 /*                                                                         */
 /*  ftoutln.h                                                              */
 /*                                                                         */
@@ -139,7 +139,7 @@ FT_BEGIN_HEADER
   /*                   outline will *not* necessarily be *freed*, when     */
   /*                   destroying the library, by @FT_Done_FreeType.       */
   /*                                                                       */
-  /*    numPoints   :: The maximum number of points within the outline.    */
+  /*    numPoints   :: The maximum number of vertices within the outline.    */
   /*                   Must be smaller than or equal to 0xFFFF (65535).    */
   /*                                                                       */
   /*    numContours :: The maximum number of contours within the outline.  */
@@ -232,7 +232,7 @@ FT_BEGIN_HEADER
   /*                                                                       */
   /* <Description>                                                         */
   /*    Return an outline's `control box'.  The control box encloses all   */
-  /*    the outline's points, including Bézier control points.  Though it  */
+  /*    the outline's vertices, including Bézier control vertices.  Though it  */
   /*    coincides with the exact bounding box for most glyphs, it can be   */
   /*    slightly larger in some situations (like when rotating an outline  */
   /*    that contains Bézier outside arcs).                                */
@@ -262,7 +262,7 @@ FT_BEGIN_HEADER
   /*    FT_Outline_Translate                                               */
   /*                                                                       */
   /* <Description>                                                         */
-  /*    Apply a simple translation to the points of an outline.            */
+  /*    Apply a simple translation to the vertices of an outline.            */
   /*                                                                       */
   /* <InOut>                                                               */
   /*    outline :: A pointer to the target outline descriptor.             */
@@ -285,7 +285,7 @@ FT_BEGIN_HEADER
   /*                                                                       */
   /* <Description>                                                         */
   /*    Copy an outline into another one.  Both objects must have the      */
-  /*    same sizes (number of points & number of contours) when this       */
+  /*    same sizes (number of vertices & number of contours) when this       */
   /*    function is called.                                                */
   /*                                                                       */
   /* <Input>                                                               */
@@ -308,7 +308,7 @@ FT_BEGIN_HEADER
   /*    FT_Outline_Transform                                               */
   /*                                                                       */
   /* <Description>                                                         */
-  /*    Apply a simple 2x2 matrix to all of an outline's points.  Useful   */
+  /*    Apply a simple 2x2 matrix to all of an outline's vertices.  Useful   */
   /*    for applying rotations, slanting, flipping, etc.                   */
   /*                                                                       */
   /* <InOut>                                                               */
@@ -319,7 +319,7 @@ FT_BEGIN_HEADER
   /*                                                                       */
   /* <Note>                                                                */
   /*    You can use @FT_Outline_Translate if you need to translate the     */
-  /*    outline's points.                                                  */
+  /*    outline's vertices.                                                  */
   /*                                                                       */
   FT_EXPORT( void )
   FT_Outline_Transform( const FT_Outline*  outline,
@@ -351,7 +351,7 @@ FT_BEGIN_HEADER
   /*                                                                       */
   /* <Note>                                                                */
   /*    The used algorithm to increase or decrease the thickness of the    */
-  /*    glyph doesn't change the number of points; this means that certain */
+  /*    glyph doesn't change the number of vertices; this means that certain */
   /*    situations like acute angles or intersections are sometimes        */
   /*    handled incorrectly.                                               */
   /*                                                                       */

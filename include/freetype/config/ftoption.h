@@ -801,7 +801,7 @@ FT_BEGIN_HEADER
   /*************************************************************************/
   /*                                                                       */
   /* Using CFF_CONFIG_OPTION_DARKENING_PARAMETER_{X,Y}{1,2,3,4} it is      */
-  /* possible to set up the default values of the four control points that */
+  /* possible to set up the default values of the four control vertices that */
   /* define the stem darkening behaviour of the (new) CFF engine.  For     */
   /* more details please read the documentation of the                     */
   /* `darkening-parameters' property of the cff driver module (file        */

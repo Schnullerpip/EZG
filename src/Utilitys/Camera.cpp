@@ -12,12 +12,13 @@ void Camera::apply_to(Shader* shader)
 	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view_tmp));
 	glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection_tmp));
 	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model_tmp));
+
 	glUniform3f(glGetUniformLocation(shader->Program, "cameraPosition"), pos.x, pos.y, pos.z);
 	reset_model_tmp();
 }
 
 void Camera::update_fps_style(GLfloat deltaTime, Input_Handler* input) {
-	GLfloat cameraSpeed = 20.f * deltaTime;
+	GLfloat cameraSpeed = 40.f * deltaTime;
 
 	//keys
 	if (input->is_pressed(GLFW_KEY_W, false)) {

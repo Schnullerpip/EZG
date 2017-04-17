@@ -1,0 +1,43 @@
+#include "SPG_Scene.h"
+
+SPG_Scene::SPG_Scene(Input_Handler* ih):input(ih)
+{
+	//start position for camera
+	cam.pos = glm::vec3(5, 20, 50);
+
+	console = new OnScreenConsole(1.5f, input, feedback, 800, 600);
+	input->subscribe(console); //events come from observerpattern
+
+	shader.push_back(new Shader("src/Shaders/simpleVertexShader.vs", "src/Shaders/simpleFragmentShader.fs", "src/Shaders/simpleGeometryShader.gs"));
+
+	glGenBuffers(1, &VBO);
+	glGenVertexArrays(1, &VAO);
+
+	glBindVertexArray(VAO);
+		glBindBuffer(GL_ARRAY_BUFFER, VBO);
+			glBufferData(GL_ARRAY_BUFFER, sizeof(points), points, GL_STATIC_DRAW);
+			glEnableVertexAttribArray(0);
+			glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GL_FLOAT), 0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+}
+
+SPG_Scene::~SPG_Scene()
+{
+}
+
+void SPG_Scene::render(GLfloat deltaTime)
+{
+	cam.view();
+	cam.projection_p(800,600); 
+
+	shader[0]->Use();
+
+	glBindVertexArray(VAO);
+		glDrawArrays(GL_POINTS, 0, 4);
+	glBindVertexArray(0);
+}
+
+void SPG_Scene::update(GLfloat deltaTime, EventFeedback* feedback)
+{
+}
