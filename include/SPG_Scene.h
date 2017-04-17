@@ -6,6 +6,7 @@ class SPG_Scene : public Scene
 {
 	Input_Handler* input;
 	OnScreenConsole* console;
+	bool renderTextureDebug = false;
 
 	Shader *densityShader;
 	Shader *test;

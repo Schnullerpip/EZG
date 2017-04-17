@@ -13,7 +13,7 @@ SPG_Scene::SPG_Scene(Input_Handler* ih, EventFeedback* ef):input(ih)
 
 	//initialize the shaders
 	densityShader =  new Shader("src/Shaders/SPG/SPG_vertex.vs", "src/Shaders/SPG/SPG_fragment.fs", "src/Shaders/SPG/SPG_geometry.gs");
-	test =			 new Shader("src/Shaders/Test_Scene/VertexShader.vs", "src/Shaders/SPG/debug.fs", "");
+	test =			 new Shader("src/Shaders/SPG/debug.vs", "src/Shaders/SPG/debug.fs", "");
 	createGeometry = new Shader("src/Shaders/SPG/createGeometry.vs",  "src/Shaders/SPG/createGeometry.gs");
 	renderGeometry = new Shader("src/Shaders/SPG/renderGeometry.vs", "src/Shaders/SPG/renderGeometry.fs", "");
 	
@@ -175,10 +175,9 @@ void SPG_Scene::render(GLfloat deltaTime)
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_3D, tex_3d);
-
 		cam.apply_to(test);
-
 		glBindVertexArray(VAO);
+		if(renderTextureDebug)
 			glDrawArrays(GL_TRIANGLES, 0, 6);
 		glBindVertexArray(0);
 	glBindTexture(GL_TEXTURE_3D, 0);
@@ -205,6 +204,11 @@ void SPG_Scene::update(GLfloat deltaTime, EventFeedback* feedback)
 	if (console->isInInsertMode())return;
 	//apply mouse movement to the camera
 	cam.update_fps_style(deltaTime, input);
+
+	if (input->is_pressed(GLFW_KEY_TAB, true))
+	{
+		renderTextureDebug = !renderTextureDebug;
+	}
 
 
 	if (lastScrollCount != input->scroll_count)
