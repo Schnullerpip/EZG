@@ -183,9 +183,10 @@ void main(){
 	for (int i=0;i < case_to_poly[mccase];++i) {
 		for(int o = 0; o < 3; ++o){
 			positionFeedback = vertlist[triTable[mccase * 15 + 3 * i + o]];
+			positionFeedback = positionFeedback.xzy;
 			positionFeedback.x *= 95.f;
-			positionFeedback.y *= 95.f;
-			positionFeedback.z *= 255.f;
+			positionFeedback.z *= 95.f;
+			positionFeedback.y *= 255.f;
 			EmitVertex();
 		}
 		EndPrimitive();
