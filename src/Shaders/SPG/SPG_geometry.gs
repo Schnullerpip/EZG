@@ -22,23 +22,3 @@ void main() {
 	}
 	EndPrimitive();
 }
-
-
-
-//#version 430 core
-
-//layout(points) in;
-//layout(points, max_vertices = 50) out;
-//in int instanceID[];
-//flat out int instance;
-//out vec4 vertexPosition;
-
-//void main()
-//{
-//    gl_Position = vec4(gl_in[0].gl_Position.xy,0,1.0f);
-//	gl_Layer = instanceID[0];
-//	instance = instanceID[0];
-//	vertexPosition = vec4(gl_in[0].gl_Position.xy,instanceID[0],1.0f);
-//	EmitVertex();
-//	EndPrimitive();
-//}

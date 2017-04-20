@@ -125,18 +125,18 @@ SPG_Scene::SPG_Scene(Input_Handler* ih, EventFeedback* ef):input(ih)
 	glUniform1i(glGetUniformLocation(createGeometry->Program, "tex3d"), 0);
 
 	//did stuff happen?
-	//GLuint query;
-	//glGenQueries(1, &query);
-	//glBeginQuery(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN, query);
+	GLuint query;
+	glGenQueries(1, &query);
+	glBeginQuery(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN, query);
 
 	glBeginTransformFeedback(GL_TRIANGLES);
 	glDrawArraysInstanced(GL_POINTS, 0, 96*96*2, 256);
 	glEndTransformFeedback();
 
 	//glEndQuery(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN);
-	//GLuint primitives;
-	//glGetQueryObjectuiv(query, GL_QUERY_RESULT, &primitives);
-	//printf("%u primitives written!\n\n", primitives);
+	GLuint primitives;
+	glGetQueryObjectuiv(query, GL_QUERY_RESULT, &primitives);
+	printf("%u primitives written!\n\n", primitives);
 
 	glDisable(GL_RASTERIZER_DISCARD);
 	glFlush();
