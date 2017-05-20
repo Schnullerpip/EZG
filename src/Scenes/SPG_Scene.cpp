@@ -21,7 +21,7 @@ SPG_Scene::SPG_Scene(Input_Handler* ih, EventFeedback* ef):input(ih)
 	createGeometry = new Shader("src/Shaders/SPG/createGeometry.vs",  "src/Shaders/SPG/createGeometry.gs");
 	createGeometry->Link(createGeometryFeedbackVaryings, 1);
 
-	GLchar* particleFeedbackVaryings[] = {"positionFeedback"/*, "typeFeedback", "lifeFeedback"*/};
+	GLchar* particleFeedbackVaryings[] = {"positionFeedback", "typeFeedback", "lifeFeedback"};
 	updateParticle = new Shader("src/Shaders/SPG/Particles/updateParticle.vs", "src/Shaders/SPG/Particles/updateParticle.gs");
 	updateParticle->Link(particleFeedbackVaryings, 1);
 	
@@ -35,7 +35,7 @@ SPG_Scene::SPG_Scene(Input_Handler* ih, EventFeedback* ef):input(ih)
 	/*-----------------------PARTICLES----------------------*/
 	glGenVertexArrays(1, &particle_vao);
 	glBindVertexArray(particle_vao);
-		for (size_t i = 0; i < particle_num*3; ++i)
+		for (size_t i = 0; i < particle_num*particle_elements; ++i)
 		{
 			particle_vertices[i] = 0;
 		}
@@ -46,6 +46,10 @@ SPG_Scene::SPG_Scene(Input_Handler* ih, EventFeedback* ef):input(ih)
 		//shader input vbo
 		glEnableVertexAttribArray(0);
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(1);
+		glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, 5, (GLvoid*)(sizeof(GLfloat)*3));
+		glEnableVertexAttribArray(2);
+		glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, 5, (GLvoid*)(sizeof(GLfloat)*4));
 
 		//shader position output vbo
 		glBindBuffer(GL_ARRAY_BUFFER, particle_vbo[FEEDBACK_P]);
@@ -248,6 +252,8 @@ void SPG_Scene::render(GLfloat deltaTime)
 		glEnable(GL_RASTERIZER_DISCARD);//so no fs will be appended to vs->gs->..
 			glBindBuffer(GL_ARRAY_BUFFER, particle_vbo[INPUT]); //declare whats the shader input
 			glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, particle_vbo[FEEDBACK_P]); //declare whats the shader output
+			glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 1, particle_vbo[FEEDBACK_T]); //declare whats the shader output
+			glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 2, particle_vbo[FEEDBACK_L]); //declare whats the shader output
 
 			//declare which shaders to use
 			updateParticle->Use();
@@ -262,6 +268,7 @@ void SPG_Scene::render(GLfloat deltaTime)
 
 		/*-----------DEBUG---------*/
 		GLfloat feedback[6];
+		glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, particle_vbo[FEEDBACK_P]);
 		glGetBufferSubData(GL_TRANSFORM_FEEDBACK_BUFFER, 0, sizeof(feedback), feedback);
 		printf("<%f, %f, %f>", feedback[0], feedback[1], feedback[2]);
 		printf("<%f, %f, %f>\n\n", feedback[3], feedback[4], feedback[5]);

@@ -3,6 +3,7 @@
 #include "OnScreenConsole.h"
 
 const int particle_num = 10;
+const int particle_elements = 3 * 2; //x,y,z, type, life
 
 class SPG_Scene : public Scene
 {
@@ -36,7 +37,7 @@ class SPG_Scene : public Scene
 	//particles specific
 	const size_t INPUT = 0, FEEDBACK_P = 1, FEEDBACK_T = 2, FEEDBACK_L = 3;
 	GLuint particle_vao, particle_vbo[4];
-	GLfloat particle_vertices[particle_num*3];
+	GLfloat particle_vertices[particle_num*particle_elements];
 public:
 	void transferParticleBuffers() {}
 	void setEmitter(GLfloat x, GLfloat y, GLfloat z) {}
