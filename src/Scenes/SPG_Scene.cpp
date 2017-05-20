@@ -1,12 +1,12 @@
 #include "SPG_Scene.h"
 #include "lut.h"
-
+#include "Cube.h"
 
 SPG_Scene::SPG_Scene(Input_Handler* ih, EventFeedback* ef):input(ih)
 {
 	feedback = ef;
 	//start position for camera
-	cam.pos = glm::vec3(0, 0, 40);
+	cam.pos = glm::vec3(0, 0, 0);
 
 	console = new OnScreenConsole(1.5f, input, feedback, 800, 600);
 	input->subscribe(console); //events come from observerpattern
@@ -14,15 +14,90 @@ SPG_Scene::SPG_Scene(Input_Handler* ih, EventFeedback* ef):input(ih)
 	//initialize the shaders
 	densityShader =  new Shader("src/Shaders/SPG/SPG_vertex.vs", "src/Shaders/SPG/SPG_fragment.fs", "src/Shaders/SPG/SPG_geometry.gs");
 	test =			 new Shader("src/Shaders/SPG/debug.vs", "src/Shaders/SPG/debug.fs", "");
-	createGeometry = new Shader("src/Shaders/SPG/createGeometry.vs",  "src/Shaders/SPG/createGeometry.gs");
 	renderGeometry = new Shader("src/Shaders/SPG/renderGeometry.vs", "src/Shaders/SPG/renderGeometry.fs", "");
+
+	createGeometryFeedbackVaryings = new GLchar*[1];
+	createGeometryFeedbackVaryings[0] = "positionFeedback";
+	createGeometry = new Shader("src/Shaders/SPG/createGeometry.vs",  "src/Shaders/SPG/createGeometry.gs");
+	createGeometry->Link(createGeometryFeedbackVaryings, 1);
+
+	GLchar* particleFeedbackVaryings[] = {"positionFeedback"/*, "typeFeedback", "lifeTimeFeedback"*/};
+	updateParticle = new Shader("src/Shaders/SPG/Particles/updateParticle.vs", "src/Shaders/SPG/Particles/updateParticle.gs");
+	updateParticle->Link(particleFeedbackVaryings, 1);
 	
 	shader.push_back(test);
 	shader.push_back(densityShader);
 	shader.push_back(createGeometry);
 	shader.push_back(renderGeometry);
+	shader.push_back(updateParticle);
 
-	//generate vertice data
+ //   // Create VAO
+ //   GLuint vao;
+ //   glGenVertexArrays(1, &vao);
+ //   glBindVertexArray(vao);
+
+ //   // Create input VBO and vertex format
+	//for (size_t i = 0; i < particle_num*3; ++i)
+	//{
+	//	particle_vertices[i] = 0;
+	//}
+
+ //   GLuint vbo;
+ //   glGenBuffers(1, &vbo);
+ //   glBindBuffer(GL_ARRAY_BUFFER, vbo);
+ //   glBufferData(GL_ARRAY_BUFFER, sizeof(particle_vertices), particle_vertices, GL_STATIC_DRAW);
+
+ //   glEnableVertexAttribArray(0);
+ //   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+ //   // Create transform feedback buffer
+ //   GLuint tbo;
+ //   glGenBuffers(1, &tbo);
+ //   glBindBuffer(GL_ARRAY_BUFFER, tbo);
+ //   glBufferData(GL_ARRAY_BUFFER, sizeof(particle_vertices), nullptr, GL_STATIC_READ);
+
+ //   // Perform feedback transform
+ //   glEnable(GL_RASTERIZER_DISCARD);
+
+ //   glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, tbo);
+
+	//updateParticle->Use();
+ //   glBeginTransformFeedback(GL_POINTS);
+ //       glDrawArrays(GL_POINTS, 0, 2);
+ //   glEndTransformFeedback();
+ //   glDisable(GL_RASTERIZER_DISCARD);
+ //   glFlush();
+
+ //   // Fetch and print results
+ //   GLfloat feedback[6];
+ //   glGetBufferSubData(GL_TRANSFORM_FEEDBACK_BUFFER, 0, sizeof(feedback), feedback);
+
+ //   printf("<%f %f %f %f %f %f>\n", feedback[0], feedback[1], feedback[2], feedback[3], feedback[4], feedback[5]);
+
+	/*-----------------------PARTICLES----------------------*/
+	glGenVertexArrays(1, &particle_vao);
+	glBindVertexArray(particle_vao);
+		for (size_t i = 0; i < particle_num*3; ++i)
+		{
+			particle_vertices[i] = 0;
+		}
+		glGenBuffers(2, particle_vbo);//in and out
+		glBindBuffer(GL_ARRAY_BUFFER, particle_vbo[INPUT]);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(particle_vertices), particle_vertices, GL_STATIC_DRAW);
+
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+		glBindBuffer(GL_ARRAY_BUFFER, particle_vbo[FEEDBACK]);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(particle_vertices), nullptr, GL_STATIC_DRAW);
+
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+	/*------------------------------------------------------*/
+
+
+
+	//generate geometry vertice data
 	glGenBuffers(1, &VBO);
 	glGenVertexArrays(1, &VAO);
 	glBindVertexArray(VAO);
@@ -106,7 +181,6 @@ SPG_Scene::SPG_Scene(Input_Handler* ih, EventFeedback* ef):input(ih)
 
 	//perform feedback transform
 	glEnable(GL_RASTERIZER_DISCARD);
-	createGeometry->Link("positionFeedback");
 	createGeometry->Use();
 
 	//Allocate storage for the UBO (LUT)
@@ -133,7 +207,7 @@ SPG_Scene::SPG_Scene(Input_Handler* ih, EventFeedback* ef):input(ih)
 	glDrawArraysInstanced(GL_POINTS, 0, 96*96*2, 256);
 	glEndTransformFeedback();
 
-	//glEndQuery(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN);
+	glEndQuery(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN);
 	GLuint primitives;
 	glGetQueryObjectuiv(query, GL_QUERY_RESULT, &primitives);
 	printf("%u primitives written!\n\n", primitives);
@@ -182,6 +256,11 @@ void SPG_Scene::render(GLfloat deltaTime)
 		glBindVertexArray(0);
 	glBindTexture(GL_TEXTURE_3D, 0);
 
+	Shader s("src/Shaders/vertexShader.vs","src/Shaders/simpleFragmentShader.fs","");
+	cam.apply_to(&s);
+	Cube c(&s ,glm::vec3(0, 0, 0), 1, 1, 1);
+	c.draw();
+
 
 	//render the geometry
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -195,12 +274,55 @@ void SPG_Scene::render(GLfloat deltaTime)
 	}
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
+
+	/*---------------------UPDATE PARTICLES---------------------------*/
+	glBindVertexArray(particle_vao);
+		glEnable(GL_RASTERIZER_DISCARD);//so no fs will be appended to vs->gs->..
+			glBindBuffer(GL_ARRAY_BUFFER, particle_vbo[INPUT]); //declare whats the shader input
+			glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, particle_vbo[FEEDBACK]); //declare whats the shader output
+
+			//declare which shaders to use
+			updateParticle->Use();
+
+			//apply the shaders 
+			glBeginTransformFeedback(GL_POINTS);
+					glDrawArrays(GL_POINTS, 0, particle_num);
+			glEndTransformFeedback();
+
+		glDisable(GL_RASTERIZER_DISCARD);
+		glFlush();
+
+		/*-----------DEBUG---------*/
+		GLfloat feedback[3];
+		glGetBufferSubData(GL_TRANSFORM_FEEDBACK_BUFFER, 0, sizeof(feedback), feedback);
+		printf("<%f, %f, %f>\n", feedback[0], feedback[1], feedback[2]);
+		glBindVertexArray(0);
+		/*-------------------------*/
+
+		//get data from feedback
+		glGetBufferSubData(GL_TRANSFORM_FEEDBACK_BUFFER, 0, sizeof(particle_vertices), particle_vertices);
+
+		//overwrite new data into the array_buffer, that is the shaders input
+		glBufferData(GL_ARRAY_BUFFER, sizeof(particle_vertices), particle_vertices, GL_STATIC_DRAW);
+
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindBuffer(GL_TRANSFORM_FEEDBACK_BUFFER, 0);
+	glBindVertexArray(0);
+	/*----------------------------------------------------------------*/
+
+
+
+	//render particles
+	//glBindVertexArray(particles_VAO);
+	//	glDrawArrays(GL_TRIANGLES, 0, particle_capacity);
+	//glBindVertexArray(0);
 }
 
 
 GLfloat lastScrollCount = -1;
 void SPG_Scene::update(GLfloat deltaTime, EventFeedback* feedback)
 {
+
 	if (console->isInInsertMode())return;
 	//apply mouse movement to the camera
 	cam.update_fps_style(deltaTime, input);

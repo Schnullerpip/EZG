@@ -13,6 +13,7 @@ void BoundingBox::recalculate()
 	origin.z = min.z + depth / 2;
 
 	//recalculate the min and max vertices (important for intersection testing)
+	//äh what? TODO test if this is the bullshit it looks like
 	min.x = min.x;
 	min.y = min.y;
 	min.z = min.z;

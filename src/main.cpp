@@ -18,6 +18,7 @@
 #include "Light_And_Shadow.h"
 #include "Input_Handler.h"
 #include "SPG_Scene.h"
+#include "DisplacementScene.h"
 
 
 // Function prototypes
@@ -46,7 +47,7 @@ int main()
 		// Init GLFW
 		glfwInit();
 		// Set all the required options for GLFW
-		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 		glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
@@ -90,6 +91,7 @@ int main()
 		//Scene* scene = new Light_And_Shadow(&input, &feedback);
 		Scene* scene = new SPG_Scene(&input, &feedback);
 		//Scene* scene = new Test_Scene();
+		//Scene* scene = new DisplacementScene(&input, &feedback);
 
 		//Game loop
 		//glEnable(GL_CULL_FACE);

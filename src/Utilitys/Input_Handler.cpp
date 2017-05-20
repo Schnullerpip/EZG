@@ -60,7 +60,15 @@ void Input_Handler::mouse_move(double x, double y) {
 
 void Input_Handler::mouse_scroll(double x, double y) {
 	scroll_count += (x + y);
+	scroll_delta = (x + y);
 	triggerListeners(MOUSESCROLL);
+}
+
+GLfloat Input_Handler::getScrollDelta()
+{
+	GLfloat ret = scroll_delta;
+	scroll_delta = 0;
+	return ret;
 }
 
 void Input_Handler::subscribe(InputListener* listener)

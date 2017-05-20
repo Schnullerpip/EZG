@@ -13,6 +13,7 @@ class Input_Handler
 	//eventmanagement
 	std::vector<InputListener*> listeners;
 
+	GLfloat scroll_delta;
 public:
 	//mouse relevant
 	double xpos, ypos, lastx, lasty;
@@ -32,6 +33,7 @@ public:
 	//mouse handling
 	void mouse_move(double x, double y);
 	void mouse_scroll(double x, double y);
+	GLfloat getScrollDelta();
 
 	//event-anagement
 	void subscribe(InputListener* listener);

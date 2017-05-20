@@ -214,10 +214,9 @@ public:
 
 	}
 
-	void Link(const GLchar* feedbackname)
+	void Link(GLchar** feedbackVaryings, size_t num)
 	{
-		const GLchar* feedbackVaryings[] = { feedbackname};
-		glTransformFeedbackVaryings(this->Program, 1, feedbackVaryings, GL_INTERLEAVED_ATTRIBS);
+		glTransformFeedbackVaryings(this->Program, num, feedbackVaryings, GL_INTERLEAVED_ATTRIBS);
 
 		glLinkProgram(this->Program);
 		// Print linking errors if any

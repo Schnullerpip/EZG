@@ -64,7 +64,7 @@ int TextRenderer::getPixelHeight() const
 
 TextRenderer::TextRenderer(int pixelH):pixel_height(pixelH)
 {
-	default_text_shader = new Shader("src/Shaders/text/text.vs", "src/Shaders/text/text.fs");
+	default_text_shader = new Shader("src/Shaders/text/text.vs", "src/Shaders/text/text.fs", "");
 	default_text_shader->Use();
 
     glm::mat4 projection = glm::ortho(0.0f, static_cast<GLfloat>(800), 0.0f, static_cast<GLfloat>(600));

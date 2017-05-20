@@ -2,6 +2,8 @@
 #include "Scene.h"
 #include "OnScreenConsole.h"
 
+const int particle_num = 10;
+
 class SPG_Scene : public Scene
 {
 	Input_Handler* input;
@@ -12,6 +14,7 @@ class SPG_Scene : public Scene
 	Shader *test;
 	Shader *createGeometry;
 	Shader *renderGeometry;
+	Shader *updateParticle;
 
 	GLfloat points[30] = {
 		//coord			//tex coord
@@ -27,10 +30,16 @@ class SPG_Scene : public Scene
 	GLuint VAO, VBO, textureVertexArray, textureVertexBuffer, polygonVAO[8], polygonVBO[8];
 
 	//Marcing Cubes Specific
+	GLchar** createGeometryFeedbackVaryings;
 	GLuint tex_3d, texFrameBuffer, lutEdges;
 
-
+	//particles specific
+	const size_t INPUT = 0, FEEDBACK = 1;
+	GLuint particle_vao, particle_vbo[2];
+	GLfloat particle_vertices[particle_num*3];
 public:
+	void transferParticleBuffers() {}
+	void setEmitter(GLfloat x, GLfloat y, GLfloat z) {}
 	static const size_t xDim_texture3d = 96, yDim_texture3d = 96, zDim_texture3d = 256;
 private:
 	GLfloat texture3d[xDim_texture3d][yDim_texture3d][zDim_texture3d] = {};
