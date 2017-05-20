@@ -21,7 +21,7 @@ SPG_Scene::SPG_Scene(Input_Handler* ih, EventFeedback* ef):input(ih)
 	createGeometry = new Shader("src/Shaders/SPG/createGeometry.vs",  "src/Shaders/SPG/createGeometry.gs");
 	createGeometry->Link(createGeometryFeedbackVaryings, 1);
 
-	GLchar* particleFeedbackVaryings[] = {"positionFeedback"/*, "typeFeedback", "lifeTimeFeedback"*/};
+	GLchar* particleFeedbackVaryings[] = {"positionFeedback"/*, "typeFeedback", "lifeFeedback"*/};
 	updateParticle = new Shader("src/Shaders/SPG/Particles/updateParticle.vs", "src/Shaders/SPG/Particles/updateParticle.gs");
 	updateParticle->Link(particleFeedbackVaryings, 1);
 	
@@ -31,48 +31,6 @@ SPG_Scene::SPG_Scene(Input_Handler* ih, EventFeedback* ef):input(ih)
 	shader.push_back(renderGeometry);
 	shader.push_back(updateParticle);
 
- //   // Create VAO
- //   GLuint vao;
- //   glGenVertexArrays(1, &vao);
- //   glBindVertexArray(vao);
-
- //   // Create input VBO and vertex format
-	//for (size_t i = 0; i < particle_num*3; ++i)
-	//{
-	//	particle_vertices[i] = 0;
-	//}
-
- //   GLuint vbo;
- //   glGenBuffers(1, &vbo);
- //   glBindBuffer(GL_ARRAY_BUFFER, vbo);
- //   glBufferData(GL_ARRAY_BUFFER, sizeof(particle_vertices), particle_vertices, GL_STATIC_DRAW);
-
- //   glEnableVertexAttribArray(0);
- //   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-
- //   // Create transform feedback buffer
- //   GLuint tbo;
- //   glGenBuffers(1, &tbo);
- //   glBindBuffer(GL_ARRAY_BUFFER, tbo);
- //   glBufferData(GL_ARRAY_BUFFER, sizeof(particle_vertices), nullptr, GL_STATIC_READ);
-
- //   // Perform feedback transform
- //   glEnable(GL_RASTERIZER_DISCARD);
-
- //   glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, tbo);
-
-	//updateParticle->Use();
- //   glBeginTransformFeedback(GL_POINTS);
- //       glDrawArrays(GL_POINTS, 0, 2);
- //   glEndTransformFeedback();
- //   glDisable(GL_RASTERIZER_DISCARD);
- //   glFlush();
-
- //   // Fetch and print results
- //   GLfloat feedback[6];
- //   glGetBufferSubData(GL_TRANSFORM_FEEDBACK_BUFFER, 0, sizeof(feedback), feedback);
-
- //   printf("<%f %f %f %f %f %f>\n", feedback[0], feedback[1], feedback[2], feedback[3], feedback[4], feedback[5]);
 
 	/*-----------------------PARTICLES----------------------*/
 	glGenVertexArrays(1, &particle_vao);
@@ -85,11 +43,21 @@ SPG_Scene::SPG_Scene(Input_Handler* ih, EventFeedback* ef):input(ih)
 		glBindBuffer(GL_ARRAY_BUFFER, particle_vbo[INPUT]);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(particle_vertices), particle_vertices, GL_STATIC_DRAW);
 
+		//shader input vbo
 		glEnableVertexAttribArray(0);
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
-		glBindBuffer(GL_ARRAY_BUFFER, particle_vbo[FEEDBACK]);
+		//shader position output vbo
+		glBindBuffer(GL_ARRAY_BUFFER, particle_vbo[FEEDBACK_P]);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(particle_vertices), nullptr, GL_STATIC_DRAW);
+
+		//shader type output vbo
+		glBindBuffer(GL_ARRAY_BUFFER, particle_vbo[FEEDBACK_T]);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(particle_vertices)/3, nullptr, GL_STATIC_DRAW);
+
+		//shader life output vbo
+		glBindBuffer(GL_ARRAY_BUFFER, particle_vbo[FEEDBACK_L]);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(particle_vertices)/3, nullptr, GL_STATIC_DRAW);
 
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
@@ -279,7 +247,7 @@ void SPG_Scene::render(GLfloat deltaTime)
 	glBindVertexArray(particle_vao);
 		glEnable(GL_RASTERIZER_DISCARD);//so no fs will be appended to vs->gs->..
 			glBindBuffer(GL_ARRAY_BUFFER, particle_vbo[INPUT]); //declare whats the shader input
-			glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, particle_vbo[FEEDBACK]); //declare whats the shader output
+			glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, particle_vbo[FEEDBACK_P]); //declare whats the shader output
 
 			//declare which shaders to use
 			updateParticle->Use();
@@ -289,13 +257,14 @@ void SPG_Scene::render(GLfloat deltaTime)
 					glDrawArrays(GL_POINTS, 0, particle_num);
 			glEndTransformFeedback();
 
-		glDisable(GL_RASTERIZER_DISCARD);
-		glFlush();
+		glDisable(GL_RASTERIZER_DISCARD);//from here on use fs again (vs->gs->fs)
+		glFlush();//wait for opengl instructions to be finished before touching the feedback
 
 		/*-----------DEBUG---------*/
-		GLfloat feedback[3];
+		GLfloat feedback[6];
 		glGetBufferSubData(GL_TRANSFORM_FEEDBACK_BUFFER, 0, sizeof(feedback), feedback);
-		printf("<%f, %f, %f>\n", feedback[0], feedback[1], feedback[2]);
+		printf("<%f, %f, %f>", feedback[0], feedback[1], feedback[2]);
+		printf("<%f, %f, %f>\n\n", feedback[3], feedback[4], feedback[5]);
 		glBindVertexArray(0);
 		/*-------------------------*/
 

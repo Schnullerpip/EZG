@@ -10,7 +10,9 @@ in vec3 position[];
 void main(){
 
 	positionFeedback = position[0];
-	positionFeedback.x += 1;
+	positionFeedback.y += 1;
+	positionFeedback.z += 1;
+
 	EmitVertex();
 	EndPrimitive();
 }

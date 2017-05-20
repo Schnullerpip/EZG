@@ -34,8 +34,8 @@ class SPG_Scene : public Scene
 	GLuint tex_3d, texFrameBuffer, lutEdges;
 
 	//particles specific
-	const size_t INPUT = 0, FEEDBACK = 1;
-	GLuint particle_vao, particle_vbo[2];
+	const size_t INPUT = 0, FEEDBACK_P = 1, FEEDBACK_T = 2, FEEDBACK_L = 3;
+	GLuint particle_vao, particle_vbo[4];
 	GLfloat particle_vertices[particle_num*3];
 public:
 	void transferParticleBuffers() {}
