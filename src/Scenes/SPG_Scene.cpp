@@ -23,7 +23,7 @@ SPG_Scene::SPG_Scene(Input_Handler* ih, EventFeedback* ef):input(ih)
 
 	GLchar* particleFeedbackVaryings[] = {"positionFeedback", "typeFeedback", "lifeFeedback"};
 	updateParticle = new Shader("src/Shaders/SPG/Particles/updateParticle.vs", "src/Shaders/SPG/Particles/updateParticle.gs");
-	updateParticle->Link(particleFeedbackVaryings, 1);
+	updateParticle->Link(particleFeedbackVaryings, 3);
 	
 	shader.push_back(test);
 	shader.push_back(densityShader);
@@ -252,8 +252,6 @@ void SPG_Scene::render(GLfloat deltaTime)
 		glEnable(GL_RASTERIZER_DISCARD);//so no fs will be appended to vs->gs->..
 			glBindBuffer(GL_ARRAY_BUFFER, particle_vbo[INPUT]); //declare whats the shader input
 			glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, particle_vbo[FEEDBACK_P]); //declare whats the shader output
-			glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 1, particle_vbo[FEEDBACK_T]); //declare whats the shader output
-			glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 2, particle_vbo[FEEDBACK_L]); //declare whats the shader output
 
 			//declare which shaders to use
 			updateParticle->Use();
