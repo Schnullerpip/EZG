@@ -18,6 +18,7 @@ in VS_OUT {
 -------------------*/
 
 out float type; //type
+out float life;
 out vec2 texCoords;
 
 float scaleFactor = 1;
@@ -25,10 +26,15 @@ float scaleFactor = 1;
 void main(){
 
 	type = gs_in[0].type;
-	//if(type == 0)//fire
-	//{
-	//	scaleFactor += 1;
-	//}
+	life = gs_in[0].life;
+	if(type == 0)//fire
+	{
+	scaleFactor += 0;
+	}
+	else if(type == 1)//smoke
+	{
+		scaleFactor += gs_in[0].life/10;
+	}
 	float doubleScale = 2*scaleFactor;
 	gl_Position = gl_in[0].gl_Position;
 

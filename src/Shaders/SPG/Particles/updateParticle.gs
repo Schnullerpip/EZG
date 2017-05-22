@@ -99,7 +99,7 @@ void main(){
 		//keep emitter
 
 		//create 10 particles per emitter
-		for(int i = 0; i < 10; ++i){
+		for(int i = 0; i < 50; ++i){
 			EmitVertex();
 			typeFeedback = 0;
 			lifeFeedback = 0;

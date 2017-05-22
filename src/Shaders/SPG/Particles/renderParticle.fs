@@ -1,11 +1,13 @@
 #version 440 core
 
 in float type;
+in float life;
 in vec2 texCoords;
 
 out vec4 color;
 
 uniform sampler2D fireTex;
+uniform sampler2D smokeTex;
 
 /*------TYPES-------
 0 = particleFire
@@ -21,7 +23,10 @@ void main(){
 		color = texture(fireTex, texCoords);
 	}
 	else if(type == 1) //smoke
-		color = vec4(0.1f, 0.1f, 0.1f, 1);
+	{
+		color = texture(smokeTex, texCoords);
+		color.a *= 10/life;
+	}
 	else if(type == 2) //bleh
 		color = vec4(0.3f, 1, 0.4f, 1);
 	else if(type == 3)//emitter

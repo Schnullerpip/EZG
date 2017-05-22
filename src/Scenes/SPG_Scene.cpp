@@ -30,6 +30,7 @@ SPG_Scene::SPG_Scene(Input_Handler* ih, EventFeedback* ef):input(ih)
 	renderParticle = new Shader("src/Shaders/SPG/Particles/renderParticle.vs", "src/Shaders/SPG/Particles/renderParticle.fs", "src/Shaders/SPG/Particles/renderParticle.gs");
 
 	texture.push_back(new Texture("images/sparks.png"));
+	texture.push_back(new Texture("images/smoke.png"));
 	
 	shader.push_back(test);
 	shader.push_back(densityShader);
@@ -307,26 +308,6 @@ void SPG_Scene::render(GLfloat deltaTime)
 		glGetBufferSubData(GL_TRANSFORM_FEEDBACK_BUFFER, 0, sizeof(feedback), feedback);
 		glFlush();
 
-
-		//DEBUG DELETE THIS!!!!
-		//auto typeToString = [](int t)->char* {
-		//		switch (t)
-		//		{
-		//		case 0:
-		//			return "FIRE";
-		//		case 1:
-		//			return "SMOKE";
-		//		case 2:
-		//			return "BLEH";
-		//		case 3:
-		//			return "EMITTER";
-		//		default:
-		//			return "NOTHING";
-		//		}
-		//};
-		//printf("<%f, %f, %f>", feedback[0], feedback[1], feedback[2]);
-		//printf(" --- <%s, %f>\n\n", typeToString(feedback[3]), feedback[4]);
-
 		//overwrite new data into the array_buffer, that is the shaders input
 		glBufferData(GL_ARRAY_BUFFER, sizeof(feedback), feedback, GL_STATIC_DRAW);
 		glFlush();
@@ -334,28 +315,21 @@ void SPG_Scene::render(GLfloat deltaTime)
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+			cam.apply_to(renderParticle);
+
 			glActiveTexture(GL_TEXTURE0);
 			texture[0]->use();
-			cam.apply_to(renderParticle);
+			glUniform1i(glGetUniformLocation(renderParticle->Program, "fireTex"), 0);
+
+			glActiveTexture(GL_TEXTURE1);
+			texture[1]->use();
+			glUniform1i(glGetUniformLocation(renderParticle->Program, "smokeTex"), 1);
+
 
 			glDrawArrays(GL_POINTS, 0, particle_num*particle_elements);
 
 		glDisable(GL_BLEND);
 
-		//Shader s("src/Shaders/SPG/Particles/singleParticle.vs", "src/Shaders/simpleFragmentShader.fs", "");
-		//cam.apply_to(&s);
-		//glDrawArrays(GL_POINTS, 0, particle_num*particle_elements);
-
-
-		//Shader s("src/Shaders/SPG/Particles/singleParticle.vs","src/Shaders/SPG/Particles/singleParticle.fs","");
-		//s.Use();
-		//for (int i = 0; i < particle_num*particle_elements; i += 5)
-		//{
-		//	Cube c(&s ,glm::vec3(0, feedback[i+1], 0), 0.05f, 0.05f, 0.05f);
-		//	cam.model(c.getPosition(), c.rotation_angle, c.rotation_axis);
-		//	cam.apply_to(&s);
-		//	c.draw();
-		//}
 
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindBuffer(GL_TRANSFORM_FEEDBACK_BUFFER, 0);
