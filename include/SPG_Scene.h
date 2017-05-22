@@ -2,8 +2,22 @@
 #include "Scene.h"
 #include "OnScreenConsole.h"
 
-const int particle_num = 10;
+const int particle_num = 1000;
 const int particle_elements = 3 * 2; //x,y,z, type, life
+
+struct marching_geo : public Shape
+{
+	void draw() override {}
+	~marching_geo() override {}
+
+	void addVertices(GLfloat verts[177147] )
+	{
+		GLfloat tmp[177147];
+		memcpy(tmp, verts, 17147);
+		std::vector<GLfloat> v(std::begin(tmp), std::end(tmp));
+		vertices.insert(vertices.end(), v.begin(), v.end());
+	}
+};
 
 class SPG_Scene : public Scene
 {
@@ -16,6 +30,9 @@ class SPG_Scene : public Scene
 	Shader *createGeometry;
 	Shader *renderGeometry;
 	Shader *updateParticle;
+	Shader *renderParticle;
+
+	marching_geo geometry;
 
 	GLfloat points[30] = {
 		//coord			//tex coord

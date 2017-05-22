@@ -214,9 +214,9 @@ public:
 
 	}
 
-	void Link(GLchar** feedbackVaryings, size_t num)
+	void Link(GLchar** feedbackVaryings, size_t num, int mode = GL_INTERLEAVED_ATTRIBS)
 	{
-		glTransformFeedbackVaryings(this->Program, num, feedbackVaryings, GL_INTERLEAVED_ATTRIBS);
+		glTransformFeedbackVaryings(this->Program, num, feedbackVaryings, mode);
 
 		glLinkProgram(this->Program);
 		// Print linking errors if any

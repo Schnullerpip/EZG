@@ -27,8 +27,8 @@ public:
 
 	Shape* fireRay(glm::vec3* origin, glm::vec3* direction, glm::vec3* out_collisionpoint, Node** out) const;
 
-	KD_Tree(unsigned dimension, std::vector<Shape*> shapes, size_t complexity = 12);//default is cube complexity
-	KD_Tree(unsigned dimension, std::vector<TriangleContainer*> tris, size_t complexity = 32);
+	KD_Tree(unsigned dimension, std::vector<Shape*> shapes, size_t complexity = 12, int offset = 14);//default is cube complexity
+	KD_Tree(unsigned dimension, std::vector<TriangleContainer*> tris, size_t complexity = 32, int offset = 14);
 	~KD_Tree();
 };
 

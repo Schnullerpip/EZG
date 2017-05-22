@@ -1,0 +1,53 @@
+#version 440 core
+
+layout (points) in;
+layout (triangle_strip, max_vertices = 36) out;
+
+in vec3 position[];
+in float type[];
+in float life[];
+
+/*------TYPES-------
+0 = particleFire -> move/change it
+1 = particleSmoke -> move/change it
+2 = particleBleh -> move/kill it
+3 = emitter -> create other particles
+4 = nothing -> discard
+-------------------*/
+
+float scaleFactor = 1;
+
+void main(){
+	//depending on type create a cube or a quad
+
+	float t = type[0];
+
+	if(t == 0 || t = 1 || t == 2) //PARTICLE
+	{
+		//create a quad, that will be textured in fs
+		vec3 point = position[0];
+
+		//upper left
+		point.x -= scaleFactor;
+		point.y += scaleFactor;
+		EmitVertex();
+
+		//lower left
+		point.y -= 2*scaleFactor;
+		EmitVertex();
+
+		//lower right
+		point.x += 2*scaleFactor;
+		EmitVertex();
+
+		//upper right
+		point.y +=2*scaleFactor;
+		EmitVErtex();
+	}
+	else if(t == 3) //EMITTER
+	{
+		//create a cube, that will be colorized in fs
+	}
+
+	EndPrimitive();
+}

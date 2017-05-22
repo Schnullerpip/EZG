@@ -86,9 +86,8 @@ Shape* KD_Tree::visitNodes(Node* node, Ray* ray, Node** out) const
 	return nullptr;
 }
 
-KD_Tree::KD_Tree(unsigned dimension, std::vector<Shape*> shapes, size_t complexity):k(dimension), complexits_bound(complexity)
+KD_Tree::KD_Tree(unsigned dimension, std::vector<Shape*> shapes, size_t complexity, int offset):k(dimension), complexits_bound(complexity)
 {
-	const unsigned offset = 14; //the offset in the cube's vertice data (also includes color, normals etc.)
 	root = new Node();
 
 	//convert the shapes(primitives) to TriangleContainers
@@ -107,9 +106,8 @@ KD_Tree::KD_Tree(unsigned dimension, std::vector<Shape*> shapes, size_t complexi
 	root->build(triangles, 0, this);
 }
 
-KD_Tree::KD_Tree(unsigned dimension, std::vector<TriangleContainer*> tris, size_t complexity):k(dimension), complexits_bound(complexity)
+KD_Tree::KD_Tree(unsigned dimension, std::vector<TriangleContainer*> tris, size_t complexity, int offset):k(dimension), complexits_bound(complexity)
 {
-	const unsigned offset = 14; //the offset in the cube's vertice data (also includes color, normals etc.)
 	root = new Node();
 
 	//build the KD-Tree

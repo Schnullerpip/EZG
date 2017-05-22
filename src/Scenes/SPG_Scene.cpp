@@ -6,7 +6,7 @@ SPG_Scene::SPG_Scene(Input_Handler* ih, EventFeedback* ef):input(ih)
 {
 	feedback = ef;
 	//start position for camera
-	cam.pos = glm::vec3(0, 0, 0);
+	cam.pos = glm::vec3(0, 20, 100);
 
 	console = new OnScreenConsole(1.5f, input, feedback, 800, 600);
 	input->subscribe(console); //events come from observerpattern
@@ -23,13 +23,18 @@ SPG_Scene::SPG_Scene(Input_Handler* ih, EventFeedback* ef):input(ih)
 
 	GLchar* particleFeedbackVaryings[] = {"positionFeedback", "typeFeedback", "lifeFeedback"};
 	updateParticle = new Shader("src/Shaders/SPG/Particles/updateParticle.vs", "src/Shaders/SPG/Particles/updateParticle.gs");
-	updateParticle->Link(particleFeedbackVaryings, 3);
+	updateParticle->Link(particleFeedbackVaryings, 3, GL_INTERLEAVED_ATTRIBS);
+
+	renderParticle = new Shader("src/Shaders/SPG/Particles/renderParticle.vs", "src/Shaders/SPG/Particles/renderParticle.fs", "src/Shaders/SPG/Particles/renderParticle.gs");
+
+	texture.push_back(new Texture("images/sparks.png"));
 	
 	shader.push_back(test);
 	shader.push_back(densityShader);
 	shader.push_back(createGeometry);
 	shader.push_back(renderGeometry);
 	shader.push_back(updateParticle);
+	shader.push_back(renderParticle);
 
 
 	/*-----------------------PARTICLES----------------------*/
@@ -37,19 +42,32 @@ SPG_Scene::SPG_Scene(Input_Handler* ih, EventFeedback* ef):input(ih)
 	glBindVertexArray(particle_vao);
 		for (size_t i = 0; i < particle_num*particle_elements; ++i)
 		{
-			particle_vertices[i] = 0;
+			particle_vertices[i]	= 0;//x,y,z
+			particle_vertices[++i]	= 0;
+			particle_vertices[++i]	= 0;
+
+			particle_vertices[++i]	= 4;//type
+			particle_vertices[++i]	= 0;//lifetime
 		}
+
+		//test DELETE THIS!!!!!
+		particle_vertices[0] = 0;
+		particle_vertices[1] = 0;
+		particle_vertices[2] = 0;
+		particle_vertices[3] = 3;
+		particle_vertices[4] = 666;
+
 		glGenBuffers(2, particle_vbo);//in and out
 		glBindBuffer(GL_ARRAY_BUFFER, particle_vbo[INPUT]);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(particle_vertices), particle_vertices, GL_STATIC_DRAW);
 
 		//shader input vbo
 		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
 		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, 5, (GLvoid*)(sizeof(GLfloat)*3));
+		glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)(sizeof(GLfloat)*3));
 		glEnableVertexAttribArray(2);
-		glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, 5, (GLvoid*)(sizeof(GLfloat)*4));
+		glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)(sizeof(GLfloat)*4));
 
 		//shader position output vbo
 		glBindBuffer(GL_ARRAY_BUFFER, particle_vbo[FEEDBACK_P]);
@@ -200,8 +218,11 @@ SPG_Scene::SPG_Scene(Input_Handler* ih, EventFeedback* ef):input(ih)
 
 		glEnableVertexAttribArray(0);
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0 * sizeof(GLfloat), (GLvoid*)0);
+		//geometry.addVertices(feedback); FAILS STACK OVERFLOW
 	}
 	/*----------------create geometry and read it from transform feedback buffer-----------*/
+
+
 }
 
 
@@ -228,10 +249,10 @@ void SPG_Scene::render(GLfloat deltaTime)
 		glBindVertexArray(0);
 	glBindTexture(GL_TEXTURE_3D, 0);
 
-	Shader s("src/Shaders/vertexShader.vs","src/Shaders/simpleFragmentShader.fs","");
-	cam.apply_to(&s);
-	Cube c(&s ,glm::vec3(0, 0, 0), 1, 1, 1);
-	c.draw();
+	//Shader s("src/Shaders/vertexShader.vs","src/Shaders/simpleFragmentShader.fs","");
+	//cam.apply_to(&s);
+	//Cube c(&s ,glm::vec3(0, 0, 0), 1, 1, 1);
+	//c.draw();
 
 
 	//render the geometry
@@ -251,45 +272,80 @@ void SPG_Scene::render(GLfloat deltaTime)
 	glBindVertexArray(particle_vao);
 		glEnable(GL_RASTERIZER_DISCARD);//so no fs will be appended to vs->gs->..
 			glBindBuffer(GL_ARRAY_BUFFER, particle_vbo[INPUT]); //declare whats the shader input
-			glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, particle_vbo[FEEDBACK_P]); //declare whats the shader output
+			glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, particle_vbo[FEEDBACK_P]); //declare whats the shader position output
+			glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 1, particle_vbo[FEEDBACK_T]); //declare whats the shader type output
+			glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 2, particle_vbo[FEEDBACK_L]); //declare whats the shader life output
 
 			//declare which shaders to use
 			updateParticle->Use();
 
 			//apply the shaders 
 			glBeginTransformFeedback(GL_POINTS);
-					glDrawArrays(GL_POINTS, 0, particle_num);
+					glDrawArrays(GL_POINTS, 0, particle_num*particle_elements);
 			glEndTransformFeedback();
 
 		glDisable(GL_RASTERIZER_DISCARD);//from here on use fs again (vs->gs->fs)
 		glFlush();//wait for opengl instructions to be finished before touching the feedback
 
-		/*-----------DEBUG---------*/
-		GLfloat feedback[6];
+		//get data from feedback
+		GLfloat feedback[particle_num * particle_elements];
 		glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, particle_vbo[FEEDBACK_P]);
 		glGetBufferSubData(GL_TRANSFORM_FEEDBACK_BUFFER, 0, sizeof(feedback), feedback);
-		printf("<%f, %f, %f>", feedback[0], feedback[1], feedback[2]);
-		printf("<%f, %f, %f>\n\n", feedback[3], feedback[4], feedback[5]);
-		glBindVertexArray(0);
-		/*-------------------------*/
+		glFlush();
 
-		//get data from feedback
-		glGetBufferSubData(GL_TRANSFORM_FEEDBACK_BUFFER, 0, sizeof(particle_vertices), particle_vertices);
+
+		//DEBUG DELETE THIS!!!!
+		//auto typeToString = [](int t)->char* {
+		//		switch (t)
+		//		{
+		//		case 0:
+		//			return "FIRE";
+		//		case 1:
+		//			return "SMOKE";
+		//		case 2:
+		//			return "BLEH";
+		//		case 3:
+		//			return "EMITTER";
+		//		default:
+		//			return "NOTHING";
+		//		}
+		//};
+		//printf("<%f, %f, %f>", feedback[0], feedback[1], feedback[2]);
+		//printf(" --- <%s, %f>\n\n", typeToString(feedback[3]), feedback[4]);
 
 		//overwrite new data into the array_buffer, that is the shaders input
-		glBufferData(GL_ARRAY_BUFFER, sizeof(particle_vertices), particle_vertices, GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(feedback), feedback, GL_STATIC_DRAW);
+		glFlush();
+
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+			glActiveTexture(GL_TEXTURE0);
+			texture[0]->use();
+			cam.apply_to(renderParticle);
+			glDrawArrays(GL_POINTS, 0, particle_num*particle_elements);
+
+		glDisable(GL_BLEND);
+
+		//Shader s("src/Shaders/SPG/Particles/singleParticle.vs", "src/Shaders/simpleFragmentShader.fs", "");
+		//cam.apply_to(&s);
+		//glDrawArrays(GL_POINTS, 0, particle_num*particle_elements);
+
+
+		//Shader s("src/Shaders/SPG/Particles/singleParticle.vs","src/Shaders/SPG/Particles/singleParticle.fs","");
+		//s.Use();
+		//for (int i = 0; i < particle_num*particle_elements; i += 5)
+		//{
+		//	Cube c(&s ,glm::vec3(0, feedback[i+1], 0), 0.05f, 0.05f, 0.05f);
+		//	cam.model(c.getPosition(), c.rotation_angle, c.rotation_axis);
+		//	cam.apply_to(&s);
+		//	c.draw();
+		//}
 
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindBuffer(GL_TRANSFORM_FEEDBACK_BUFFER, 0);
 	glBindVertexArray(0);
 	/*----------------------------------------------------------------*/
-
-
-
-	//render particles
-	//glBindVertexArray(particles_VAO);
-	//	glDrawArrays(GL_TRIANGLES, 0, particle_capacity);
-	//glBindVertexArray(0);
 }
 
 
@@ -304,6 +360,27 @@ void SPG_Scene::update(GLfloat deltaTime, EventFeedback* feedback)
 	if (input->is_pressed(GLFW_KEY_TAB, true))
 	{
 		renderTextureDebug = !renderTextureDebug;
+	}
+
+	if (input->is_pressed(GLFW_KEY_SPACE, true))
+	{
+		for (size_t i = 0; i < particle_num*particle_elements; ++i)
+		{
+			particle_vertices[i]	= 0;//x,y,z
+			particle_vertices[++i]	= 0;
+			particle_vertices[++i]	= 0;
+
+			particle_vertices[++i]	= 4;//type
+			particle_vertices[++i]	= 0;//lifetime
+		}
+		//test DELETE THIS!!!!!
+		particle_vertices[0] = 10;
+		particle_vertices[1] = 0;
+		particle_vertices[2] = 0;
+		particle_vertices[3] = 3;
+		particle_vertices[4] = 666;
+		glBindBuffer(GL_ARRAY_BUFFER, particle_vbo[INPUT]);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(particle_vertices), particle_vertices, GL_STATIC_DRAW);
 	}
 
 

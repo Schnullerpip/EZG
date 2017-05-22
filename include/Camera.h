@@ -34,7 +34,7 @@ public:
 		view_tmp = glm::lookAt(pos, pos + front, up)*factor;
 		return view_tmp;
 	}
-	inline glm::mat4 projection_p(GLfloat width, GLfloat height, GLfloat near = 0.1f, GLfloat far=200.f) {
+	inline glm::mat4 projection_p(GLfloat width, GLfloat height, GLfloat near = 0.1f, GLfloat far=1000.f) {
 		glm::mat4 p;
 		projection_tmp = p;
 		projection_tmp = glm::perspective(glm::radians(fov), width/height, near, far);
