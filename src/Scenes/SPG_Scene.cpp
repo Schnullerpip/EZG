@@ -4,6 +4,9 @@
 #include <ctime>
 #include <random>
 
+float wind_intensity = 0.2f;
+glm::vec3 wind_direction = glm::vec3(1, 0, 0);
+
 SPG_Scene::SPG_Scene(Input_Handler* ih, EventFeedback* ef):input(ih)
 {
 	feedback = ef;
@@ -290,9 +293,15 @@ void SPG_Scene::render(GLfloat deltaTime)
 			//declare which shaders to use
 			updateParticle->Use();
 
+			//random seeds for the positiona
 			glm::vec3 rands(probability(generator), probability(generator), probability(generator));
 			GLint randLoc = glGetUniformLocation(updateParticle->Program, "random");
 			glUniform3f(randLoc, rands.x, rands.y, rands.z);
+
+			//wind vector that should influence the smoke - 4th foat is intensity
+			glm::vec4 wind(wind_direction.x, wind_direction.y, wind_direction.z, wind_intensity);
+			glUniform4f(glGetUniformLocation(updateParticle->Program, "wind"), wind.x, wind.y, wind.z, wind.w);
+
 
 			//apply the shaders 
 			glBeginTransformFeedback(GL_POINTS);
@@ -376,6 +385,19 @@ void SPG_Scene::update(GLfloat deltaTime, EventFeedback* feedback)
 		glBindBuffer(GL_ARRAY_BUFFER, particle_vbo[INPUT]);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(particle_vertices), particle_vertices, GL_STATIC_DRAW);
 
+	}
+
+	if (input->is_pressed(GLFW_KEY_J))
+	{
+		wind_direction = -cam.front;
+	}
+	else if (input->is_pressed(GLFW_KEY_N, false))
+	{
+		wind_intensity += 0.01f;
+	}
+	else if (input->is_pressed(GLFW_KEY_M, false))
+	{
+		wind_intensity -= 0.01f;
 	}
 
 

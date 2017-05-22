@@ -21,6 +21,7 @@ float smokeSpeed = 0.2;
 float blehSpeed = 0.01;
 
 uniform vec3 random;
+uniform vec4 wind;
 
 float rand(vec2 co){
     return 2*(fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453))-1.0f;
@@ -51,12 +52,14 @@ void main(){
 	/*-------------------PARTICLES-----------------------*/
 
 	vec2 s = vec2(seed[0] * random.x, seed[0] * random.y);
+	vec3 w_direction = wind.xyz;
 
 	if(type[0] == 0){//particleFire -> move/change it
 		//move up
 		positionFeedback.y += fract(fireSpeed + rand(s));
 		positionFeedback.x += rand(s);
 		positionFeedback.z += rand(s)*random.z;
+		positionFeedback += w_direction * wind.w/2;
 
 		//reduce lifetime
 		lifeFeedback = life[0]+1;
@@ -68,6 +71,7 @@ void main(){
 	else if(type[0] == 1){//particleSmoke
 		//move up
 		positionFeedback.y += smokeSpeed;
+		positionFeedback += w_direction * wind.w;
 
 		//reduce lifetime
 		lifeFeedback = life[0]+1;
@@ -95,11 +99,11 @@ void main(){
 
 
 
-	else if(type[0] == 3){//emitter
+	else if(type[0] == 3 && wind.w < 5){//emitter
 		//keep emitter
 
 		//create 10 particles per emitter
-		for(int i = 0; i < 50; ++i){
+		for(int i = 0; i < 100; ++i){
 			EmitVertex();
 			typeFeedback = 0;
 			lifeFeedback = 0;
