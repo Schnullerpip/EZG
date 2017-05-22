@@ -18,7 +18,6 @@ uniform sampler2D fireTex;
 void main(){
 	if(type == 0) //fire
 	{
-		color = vec4(1, 0, 0, 1);
 		color = texture(fireTex, texCoords);
 	}
 	else if(type == 1) //smoke

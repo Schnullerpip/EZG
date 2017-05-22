@@ -24,8 +24,12 @@ float scaleFactor = 1;
 
 void main(){
 
-	float doubleScale = 2*scaleFactor;
 	type = gs_in[0].type;
+	//if(type == 0)//fire
+	//{
+	//	scaleFactor += 1;
+	//}
+	float doubleScale = 2*scaleFactor;
 	gl_Position = gl_in[0].gl_Position;
 
 

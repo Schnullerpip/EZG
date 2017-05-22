@@ -1,21 +1,19 @@
 #pragma once
 #include "Scene.h"
 #include "OnScreenConsole.h"
+#include "KD_Tree.h"
+#include <random>
 
-const int particle_num = 1000;
+const int particle_num = 10000;
 const int particle_elements = 3 * 2; //x,y,z, type, life
 
 struct marching_geo : public Shape
 {
 	void draw() override {}
-	~marching_geo() override {}
 
-	void addVertices(GLfloat verts[177147] )
+	void addVertices(GLfloat* begin, GLfloat* end)
 	{
-		GLfloat tmp[177147];
-		memcpy(tmp, verts, 17147);
-		std::vector<GLfloat> v(std::begin(tmp), std::end(tmp));
-		vertices.insert(vertices.end(), v.begin(), v.end());
+		vertices.insert(vertices.end(), begin, end);
 	}
 };
 
@@ -32,7 +30,8 @@ class SPG_Scene : public Scene
 	Shader *updateParticle;
 	Shader *renderParticle;
 
-	marching_geo geometry;
+	marching_geo *geometry;
+	KD_Tree* kdt;
 
 	GLfloat points[30] = {
 		//coord			//tex coord
@@ -55,6 +54,8 @@ class SPG_Scene : public Scene
 	const size_t INPUT = 0, FEEDBACK_P = 1, FEEDBACK_T = 2, FEEDBACK_L = 3;
 	GLuint particle_vao, particle_vbo[4];
 	GLfloat particle_vertices[particle_num*particle_elements];
+	std::mt19937 generator;
+	std::uniform_real_distribution<float> probability;
 public:
 	void transferParticleBuffers() {}
 	void setEmitter(GLfloat x, GLfloat y, GLfloat z) {}

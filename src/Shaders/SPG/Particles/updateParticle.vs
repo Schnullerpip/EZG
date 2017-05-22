@@ -7,9 +7,11 @@ layout (location = 2) in float lif;
 out vec3 position;
 out float type;
 out float life;
+out int seed;
 
 void main()
 {
+	seed = gl_VertexID;
 	position = pos;
 	type = typ;
 	life = lif;

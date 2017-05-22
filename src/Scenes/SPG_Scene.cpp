@@ -1,12 +1,14 @@
 #include "SPG_Scene.h"
 #include "lut.h"
 #include "Cube.h"
+#include <ctime>
+#include <random>
 
 SPG_Scene::SPG_Scene(Input_Handler* ih, EventFeedback* ef):input(ih)
 {
 	feedback = ef;
 	//start position for camera
-	cam.pos = glm::vec3(0, 20, 100);
+	cam.pos = glm::vec3(0, 20, 50);
 
 	console = new OnScreenConsole(1.5f, input, feedback, 800, 600);
 	input->subscribe(console); //events come from observerpattern
@@ -83,6 +85,8 @@ SPG_Scene::SPG_Scene(Input_Handler* ih, EventFeedback* ef):input(ih)
 
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
+	generator = std::mt19937(time(nullptr));
+	probability = std::uniform_real_distribution<float>(-1.0f, 1.0f);
 	/*------------------------------------------------------*/
 
 
@@ -205,6 +209,8 @@ SPG_Scene::SPG_Scene(Input_Handler* ih, EventFeedback* ef):input(ih)
 	glDisable(GL_RASTERIZER_DISCARD);
 	glFlush();
 
+	geometry = new marching_geo();
+
 	glGenVertexArrays(8, &polygonVAO[0]);
 	glGenBuffers(8, &polygonVBO[0]);
 	for (int i = 0; i < 8; i++)
@@ -218,11 +224,15 @@ SPG_Scene::SPG_Scene(Input_Handler* ih, EventFeedback* ef):input(ih)
 
 		glEnableVertexAttribArray(0);
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0 * sizeof(GLfloat), (GLvoid*)0);
-		//geometry.addVertices(feedback); FAILS STACK OVERFLOW
+		if(i <= 2)
+			geometry->addVertices(std::begin(feedback), std::end(feedback));// FAILS STACK OVERFLOW
 	}
+	shape.push_back(geometry);
+
+	console->out("initializing kd tree");
+	kdt = new KD_Tree(3, shape, 32, 5);
+	console->out("initializing kd tree - DONE");
 	/*----------------create geometry and read it from transform feedback buffer-----------*/
-
-
 }
 
 
@@ -279,6 +289,10 @@ void SPG_Scene::render(GLfloat deltaTime)
 			//declare which shaders to use
 			updateParticle->Use();
 
+			glm::vec3 rands(probability(generator), probability(generator), probability(generator));
+			GLint randLoc = glGetUniformLocation(updateParticle->Program, "random");
+			glUniform3f(randLoc, rands.x, rands.y, rands.z);
+
 			//apply the shaders 
 			glBeginTransformFeedback(GL_POINTS);
 					glDrawArrays(GL_POINTS, 0, particle_num*particle_elements);
@@ -323,6 +337,7 @@ void SPG_Scene::render(GLfloat deltaTime)
 			glActiveTexture(GL_TEXTURE0);
 			texture[0]->use();
 			cam.apply_to(renderParticle);
+
 			glDrawArrays(GL_POINTS, 0, particle_num*particle_elements);
 
 		glDisable(GL_BLEND);
@@ -364,6 +379,11 @@ void SPG_Scene::update(GLfloat deltaTime, EventFeedback* feedback)
 
 	if (input->is_pressed(GLFW_KEY_SPACE, true))
 	{
+
+		glm::vec3 collision_point;
+		Node* n;
+		kdt->fireRay(&cam.pos, &cam.front, &collision_point, &n);
+
 		for (size_t i = 0; i < particle_num*particle_elements; ++i)
 		{
 			particle_vertices[i]	= 0;//x,y,z
@@ -374,13 +394,14 @@ void SPG_Scene::update(GLfloat deltaTime, EventFeedback* feedback)
 			particle_vertices[++i]	= 0;//lifetime
 		}
 		//test DELETE THIS!!!!!
-		particle_vertices[0] = 10;
-		particle_vertices[1] = 0;
-		particle_vertices[2] = 0;
+		particle_vertices[0] = collision_point.x;
+		particle_vertices[1] = collision_point.y;
+		particle_vertices[2] = collision_point.z;
 		particle_vertices[3] = 3;
 		particle_vertices[4] = 666;
 		glBindBuffer(GL_ARRAY_BUFFER, particle_vbo[INPUT]);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(particle_vertices), particle_vertices, GL_STATIC_DRAW);
+
 	}
 
 

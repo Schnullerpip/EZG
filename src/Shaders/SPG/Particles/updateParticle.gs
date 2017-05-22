@@ -10,14 +10,21 @@ layout (xfb_buffer = 2) out float lifeFeedback;
 in vec3 position[];
 in float type[];
 in float life[];
+in int seed[];
 
-float fireLife = 20;
+float fireLife = 10;
 float smokeLife = 200;
 float blehLife = 100;
 
-float fireSpeed = 1;
+float fireSpeed = 0.1f;
 float smokeSpeed = 0.2;
 float blehSpeed = 0.01;
+
+uniform vec3 random;
+
+float rand(vec2 co){
+    return 2*(fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453))-1.0f;
+}
 
 void main(){
 
@@ -43,10 +50,13 @@ void main(){
 
 	/*-------------------PARTICLES-----------------------*/
 
+	vec2 s = vec2(seed[0] * random.x, seed[0] * random.y);
 
 	if(type[0] == 0){//particleFire -> move/change it
 		//move up
-		positionFeedback.y += fireSpeed;
+		positionFeedback.y += fract(fireSpeed + rand(s));
+		positionFeedback.x += rand(s);
+		positionFeedback.z += rand(s)*random.z;
 
 		//reduce lifetime
 		lifeFeedback = life[0]+1;
@@ -89,7 +99,7 @@ void main(){
 		//keep emitter
 
 		//create 10 particles per emitter
-		for(int i = 0; i < 1; ++i){
+		for(int i = 0; i < 10; ++i){
 			EmitVertex();
 			typeFeedback = 0;
 			lifeFeedback = 0;

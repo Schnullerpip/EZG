@@ -19,6 +19,7 @@
 #include "Input_Handler.h"
 #include "SPG_Scene.h"
 #include "DisplacementScene.h"
+#include <ctime>
 
 
 // Function prototypes
@@ -35,6 +36,8 @@ EventFeedback feedback;
 // The MAIN function, from here we start the application and run the game loop
 int main()
 {
+
+	srand(time(NULL));
 
 	GLFWwindow* window;
 	do
