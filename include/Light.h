@@ -17,7 +17,7 @@ protected:
 	//for shadow
 	GLuint	SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
 	GLuint depthMapFBO, depthMapFBOVSM, depthCubeMap, depthCubeMapVSM;
-	GLfloat far = 150.f;
+	GLfloat far = 800.f;
 public:
 	void setShader(Shader* s) { shader = s; }
 	void setTexture(Texture* t) const { object->texture = t; }

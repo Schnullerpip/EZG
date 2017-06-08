@@ -23,7 +23,7 @@ struct marching_geo : public Shape
 		VAO = polygonVAO[0];
 	}
 	void render() override {
-		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		shader->Use();
 		for (int i = 0; i < numBuffers; ++i)
 		{
@@ -31,7 +31,7 @@ struct marching_geo : public Shape
 				glDrawArrays(GL_TRIANGLES, 0, vaoVertexCount[i]);
 			glBindVertexArray(0);
 		}
-		//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	}
 
 	void addVertices(GLfloat* begin, GLfloat* end)

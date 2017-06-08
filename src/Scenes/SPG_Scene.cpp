@@ -6,6 +6,7 @@
 
 float wind_intensity = 0.2f;
 glm::vec3 wind_direction = glm::vec3(1, 0, 0);
+bool lightFollow = false;
 
 SPG_Scene::SPG_Scene(Input_Handler* ih, EventFeedback* ef):input(ih)
 {
@@ -439,12 +440,45 @@ void SPG_Scene::update(GLfloat deltaTime, EventFeedback* feedback)
 
 	if (console->isInInsertMode())return;
 	//apply mouse movement to the camera
-	cam.update_fps_style(deltaTime, input);
+	static float *camSpeed = &cam.camSpeed;
+	static float originalSpeed = *camSpeed;
+	if (lightFollow)
+	{
+		static float speed = 4.f;
+		glm::vec3 posi = light[0]->getPosition();
+		light[0]->setPosition(cam.pos + cam.front * 10.f);
+		if (input->is_pressed(GLFW_KEY_W, false))
+			posi.z -= speed;
+		if (input->is_pressed(GLFW_KEY_S, false))
+			posi.z += speed;
+		if (input->is_pressed(GLFW_KEY_A, false))
+				posi.x -= speed;
+		if (input->is_pressed(GLFW_KEY_D, false))
+				posi.x += speed;
+		light[0]->setPosition(posi);
+	}
+	else
+	{
+		cam.update_fps_style(deltaTime, input);
+	}
 
 	if (input->is_pressed(GLFW_KEY_TAB, true))
 	{
 		renderTextureDebug = !renderTextureDebug;
 	}
+	if (input->is_pressed(GLFW_KEY_LEFT_SHIFT, false))
+	{
+		*camSpeed = originalSpeed + 40.f;
+	}
+	else
+	{
+		*camSpeed = originalSpeed;
+	}
+	if (input->is_pressed(GLFW_KEY_L))
+	{
+		lightFollow = !lightFollow;
+	}
+
 
 	if (input->is_pressed(GLFW_KEY_SPACE, true))
 	{

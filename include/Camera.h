@@ -20,6 +20,7 @@ public:
 	GLfloat yaw = -90.0f;	// Yaw is initialized to -90.0 degrees since a yaw of 0.0 results in a direction vector pointing to the right (due to how Eular angles work) so we initially rotate a bit to the left.
 	GLfloat pitch = 0.0f;
 	GLfloat fov = 45.0f;
+	GLfloat camSpeed = 40.f;
 
 	glm::mat4 view(glm::vec3 position, glm::vec3 front, glm::vec3 up, glm::mat4 factor = glm::mat4());
 

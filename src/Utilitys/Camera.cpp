@@ -18,7 +18,7 @@ void Camera::apply_to(Shader* shader)
 }
 
 void Camera::update_fps_style(GLfloat deltaTime, Input_Handler* input, GLfloat camSpeed) {
-	GLfloat cameraSpeed = camSpeed * deltaTime;
+	GLfloat cameraSpeed = this->camSpeed * deltaTime;
 
 	//keys
 	if (input->is_pressed(GLFW_KEY_W, false)) {
