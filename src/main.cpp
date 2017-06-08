@@ -9,12 +9,7 @@
 
 //my Includes
 #include "Shader.h"
-#include "Triangle.h"
-#include "Cube.h"
-#include "Kochanek_Bartels_Scene.h"
-#include "KB_Interpolation.h"
 #include "Test_Scene.h"
-#include "Plane.h"
 #include "Light_And_Shadow.h"
 #include "Input_Handler.h"
 #include "SPG_Scene.h"
@@ -69,7 +64,6 @@ int main()
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_MULTISAMPLE);
 		glEnable(GL_BLEND);
-		glEnable(GL_TEXTURE_3D);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 		// Set the required callback functions

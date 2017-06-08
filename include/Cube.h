@@ -18,7 +18,7 @@ public:
 		glm::vec3 blb = glm::vec3(-.5f, -.5f, -.5f),
 		glm::vec3 brb = glm::vec3(.5f, -.5f, -.5f),
 			GLfloat width = 1.f, GLfloat height = 1.f, GLfloat depth = 1.f);
-	virtual void draw() override;
+	virtual void render() override;
 	~Cube();
 };
 

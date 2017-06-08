@@ -46,7 +46,7 @@ Pyramid::Pyramid(glm::vec3 pos_glo, GLfloat width, GLfloat height, GLfloat depth
 //	draw();
 //}
 
-void Pyramid::draw() {
+void Pyramid::render() {
 	glBindVertexArray(VAO);
 		glBindBuffer(GL_ARRAY_BUFFER, VBO);
 			//copy data to the buffer

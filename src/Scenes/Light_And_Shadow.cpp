@@ -201,7 +201,7 @@ void Light_And_Shadow::renderKD_Node(Node* node, Shader* s, Camera* cam)
 	cam->apply_to(bbox_representation->shader);
 	float color = node->depth * 0.13f;
 	glUniform3f(glGetUniformLocation(bbox_representation->shader->Program, "lightColor"), color, color, color);
-	bbox_representation->draw();
+	bbox_representation->render();
 
 	renderKD_Node(node->left(), s, cam);
 	renderKD_Node(node->right(), s, cam);
@@ -227,7 +227,7 @@ void Light_And_Shadow::renderKD(Node* node, Shader* s, Camera* cam, int max_dept
 			cam->apply_to(bbox_representation->shader);
 			float color = n->depth * 0.13f;
 			glUniform3f(glGetUniformLocation(bbox_representation->shader->Program, "lightColor"), color, color, color);
-			bbox_representation->draw();
+			bbox_representation->render();
 			nodes.pop();
 		}
 	else
@@ -287,7 +287,7 @@ void Light_And_Shadow::render(GLfloat deltaTime) {
 
 		glActiveTexture(GL_TEXTURE2);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, light[0]->getDepthCubeMap());
-		shape[i]->draw();
+		shape[i]->render();
 	}
 
 	//render the bounding boxes
@@ -299,14 +299,14 @@ void Light_And_Shadow::render(GLfloat deltaTime) {
 
 			cam.model_translation(hitpoint_repr1->getPosition());
 			cam.apply_to(hitpoint_repr1->shader);
-			hitpoint_repr1->draw();
+			hitpoint_repr1->render();
 		}
 		if (hitpoint_repr2)
 		{
 
 			cam.model_translation(hitpoint_repr2->getPosition());
 			cam.apply_to(hitpoint_repr2->shader);
-			hitpoint_repr2->draw();
+			hitpoint_repr2->render();
 		}
 
 		if (hitpoint_repr1 && hitpoint_repr2) {

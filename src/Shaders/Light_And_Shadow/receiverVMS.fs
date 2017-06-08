@@ -23,37 +23,28 @@ uniform float bumpFactor;
 float specularStrength = 0.5f;
 float ambientStrength = 0.1f;
 
-// array of offset direction for sampling
-vec3 gridSamplingDisk[20] = vec3[]
-(
-   vec3(1, 1, 1), vec3(1, -1, 1), vec3(-1, -1, 1), vec3(-1, 1, 1), 
-   vec3(1, 1, -1), vec3(1, -1, -1), vec3(-1, -1, -1), vec3(-1, 1, -1),
-   vec3(1, 1, 0), vec3(1, -1, 0), vec3(-1, -1, 0), vec3(-1, 1, 0),
-   vec3(1, 0, 1), vec3(-1, 0, 1), vec3(1, 0, -1), vec3(-1, 0, -1),
-   vec3(0, 1, 1), vec3(0, -1, 1), vec3(0, -1, -1), vec3(0, 1, -1)
-);
 
 float ShadowCalculation(vec3 fragPos)
 {
+	// get vector between fragment position and light position
     vec3 fragToLight = fragPos - lightPosition;
-    float currentDepth = length(fragToLight);
+	vec2 moments = texture(depthMap,fragToLight).rg*farPlane;
+	float distance = length(fragToLight);
+	
+	// Surface is fully lit. as the current fragment is before the light occluder
+	if (distance <= moments.x)
+		return 1.0;
 
-	float shadow = 0;
-    float bias = 0.5;
-	int samples = 20;
-	float viewDistance = length(cameraPosition - fragPos);
-	float diskRadius = (1.0 + (viewDistance / farPlane)) / 25.0;
+	// The fragment is either in shadow or penumbra. We now use chebyshev's upperBound to check
+	// How likely this pixel is to be lit (p_max)
+	float variance = moments.y - (moments.x*moments.x);
+	//variance = max(variance, 0.000002);
+	variance = max(variance, 0.00002);
 
-	for(int i = 0; i < samples; ++i){
-		float closestDepth = texture(depthMap, fragToLight + gridSamplingDisk[i] * diskRadius).r;
-		closestDepth *= farPlane;
-		if(currentDepth - bias > closestDepth){
-			shadow += 1.0;
-		}
-	}
-	shadow /= float(samples);
+	float d = distance - moments.x;
+	float p_max = variance / (variance + d*d);
 
-    return shadow;
+	return p_max;
 }
 
 void main()
@@ -79,7 +70,7 @@ void main()
 
 	
 	//vec3 result= (ambient + diffuse + specular) * vec3(1.f, 0.4f, 0.31f);
-	vec3 result= (ambient + (1.0-ShadowCalculation(FragPos))*(diffuse + specular)) * vec3(1.f, 0.4f, 0.31f);
+	vec3 result= (ambient + (ShadowCalculation(FragPos))*(diffuse + specular)) * vec3(1.f, 0.4f, 0.31f);
 
 	color = texture(ourTexture, TexCoord) * vec4(result, 1.f);
 	//color = vec4(vec3(ShadowCalculation(FragPos)/farPlane), 1.0);

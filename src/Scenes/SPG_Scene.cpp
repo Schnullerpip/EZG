@@ -42,6 +42,45 @@ SPG_Scene::SPG_Scene(Input_Handler* ih, EventFeedback* ef):input(ih)
 	shader.push_back(updateParticle);
 	shader.push_back(renderParticle);
 
+	//shader for the receivers
+	Shader* lightAffectedShader = new Shader(
+		"src/Shaders/Light_And_Shadow/smartVertex.vs",
+		"src/Shaders/Light_And_Shadow/receiverVMS.fs", "");
+	lightAffectedShader->Use();
+	glUniform1i(glGetUniformLocation(lightAffectedShader->Program, "ourTexture"), 0);
+	glUniform1i(glGetUniformLocation(lightAffectedShader->Program, "normalMap"), 1);
+	glUniform1i(glGetUniformLocation(lightAffectedShader->Program, "depthMap"), 2);
+	shader.push_back(lightAffectedShader);
+
+	//shader for the light source
+	Shader* lightEmitterShader = new Shader(
+		"src/Shaders/Light_And_Shadow/VertexLight.vs",
+		"src/Shaders/Light_And_Shadow/FragmentLight.fs", "");
+	shader.push_back(lightEmitterShader);
+
+	//lightsources
+	light.push_back(new Light(lightEmitterShader, glm::vec3(0, 30, 0), 0.2, 0.2, 0.2));
+
+	texture.push_back(new Texture("images/crate.jpg"));
+	texture.push_back(new Texture("images/crate_NRM.png"));
+
+	//primitives
+	Cube *floor = new Cube(lightAffectedShader, glm::vec3(0, 0, 0), 200, 1, 200);
+	Cube *o1 = new Cube(lightAffectedShader, glm::vec3(0, 10, 20), 1, 1, 10);
+	Cube *o2 = new Cube(lightAffectedShader, glm::vec3(-5, 5, -5), 3, 1, 3);
+
+	floor->texture = texture[2];
+	o1->texture = texture[2];
+	o2->texture = texture[2];
+
+	floor->normalMap = texture[3];
+	o1->normalMap = texture[3];
+	o2->normalMap = texture[3];
+
+	shape.push_back(floor);
+	shape.push_back(o1);
+	shape.push_back(o2);
+
 
 	/*-----------------------PARTICLES----------------------*/
 	glGenVertexArrays(1, &particle_vao);
@@ -135,8 +174,8 @@ SPG_Scene::SPG_Scene(Input_Handler* ih, EventFeedback* ef):input(ih)
 		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
-		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
 		glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA, xDim_texture3d, yDim_texture3d, zDim_texture3d, 0, GL_RGBA, GL_FLOAT, 0);
 		//glTexImage3D(GL_TEXTURE_3D, 0, GL_R16, xDim_texture3d, yDim_texture3d, zDim_texture3d, 0, GL_RED, GL_HALF_FLOAT, 0);
@@ -202,39 +241,66 @@ SPG_Scene::SPG_Scene(Input_Handler* ih, EventFeedback* ef):input(ih)
 	glBeginQuery(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN, query);
 
 	glBeginTransformFeedback(GL_TRIANGLES);
-	glDrawArraysInstanced(GL_POINTS, 0, 96*96*2, 256);
+	glDrawArraysInstanced(GL_POINTS, 0, 95*95, 255);
 	glEndTransformFeedback();
 
 	glEndQuery(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN);
 	GLuint primitives;
 	glGetQueryObjectuiv(query, GL_QUERY_RESULT, &primitives);
 	printf("%u primitives written!\n\n", primitives);
-
+	auto generatedVertexCount = primitives * 3;
+	printf("consisting of %d triangles\n", generatedVertexCount);
+	glDeleteQueries(1, &query);
 	glDisable(GL_RASTERIZER_DISCARD);
-	glFlush();
 
-	geometry = new marching_geo();
+	//Shape object to save the vertices
 
-	glGenVertexArrays(8, &polygonVAO[0]);
-	glGenBuffers(8, &polygonVBO[0]);
-	for (int i = 0; i < 8; i++)
+	GLuint numBuffers, numFullBuffers;
+	numBuffers = numFullBuffers = static_cast<int>(generatedVertexCount / singleBufferLength);
+	int missingVertices = generatedVertexCount % singleBufferLength;
+	if (missingVertices > 0) ++numBuffers;
+
+	geometry = new marching_geo(numBuffers);
+	//glGenVertexArrays(numBuffers, &polygonVAO[0]);
+	//glGenBuffers(numBuffers, &polygonVBO[0]);
+
+	GLfloat *feedback;
+	int i = 0;
+	for (; i < numFullBuffers; i++)
 	{
-		GLfloat feedback[177147];
-		glGetBufferSubData(GL_TRANSFORM_FEEDBACK_BUFFER, i * sizeof(feedback), sizeof(feedback), feedback);
-		glBindVertexArray(polygonVAO[i]);
+		feedback = new GLfloat[singleBufferLength];
+		glGetBufferSubData(GL_TRANSFORM_FEEDBACK_BUFFER, i * singleBufferLength * sizeof(GLfloat), singleBufferLength * sizeof(GLfloat), feedback);
+		geometry->vaoVertexCount[i] = singleBufferLength / 3;
+		glBindVertexArray(geometry->polygonVAO[i]);
 
-		glBindBuffer(GL_ARRAY_BUFFER, polygonVBO[i]);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(feedback), feedback, GL_STATIC_DRAW);
+		glBindBuffer(GL_ARRAY_BUFFER, geometry->polygonVBO[i]);
+		glBufferData(GL_ARRAY_BUFFER, singleBufferLength * sizeof(GLfloat), feedback, GL_STATIC_DRAW);
 
 		glEnableVertexAttribArray(0);
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0 * sizeof(GLfloat), (GLvoid*)0);
-		if(i <= 2)
-			geometry->addVertices(std::begin(feedback), std::end(feedback));// FAILS STACK OVERFLOW
+		geometry->addVertices(feedback, feedback+singleBufferLength);
 	}
+	//consider the rest
+	if (missingVertices > 0)
+	{
+		feedback = new GLfloat[missingVertices];
+		glGetBufferSubData(GL_TRANSFORM_FEEDBACK_BUFFER, i * singleBufferLength * sizeof(GLfloat), missingVertices * sizeof(GLfloat), feedback);
+		geometry->vaoVertexCount[i] = missingVertices / 3;
+		glBindVertexArray(geometry->polygonVAO[i]);
+
+		glBindBuffer(GL_ARRAY_BUFFER, geometry->polygonVBO[i]);
+		glBufferData(GL_ARRAY_BUFFER, missingVertices * sizeof(GLfloat), feedback, GL_STATIC_DRAW);
+
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0 * sizeof(GLfloat), (GLvoid*)0);
+		geometry->addVertices(feedback, feedback+missingVertices);
+		
+	}
+	geometry->shader = renderGeometry;
 	shape.push_back(geometry);
 
 	console->out("initializing kd tree");
-	kdt = new KD_Tree(3, shape, 32, 5);
+	kdt = new KD_Tree(3, shape, 32);
 	console->out("initializing kd tree - DONE");
 	/*----------------create geometry and read it from transform feedback buffer-----------*/
 }
@@ -251,36 +317,56 @@ void SPG_Scene::render(GLfloat deltaTime)
 	cam.view();
 	cam.projection_p(800,600); 
 
-	test->Use();
-	glUniform1i(glGetUniformLocation(test->Program, "layer"), input->scroll_count >= 0 ? input->scroll_count : 0);
+	//render shadows
+	//light[0]->renderShadow(shape, window);
+	GLuint dcm = light[0]->renderShadowVSM(shape, window);
 
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_3D, tex_3d);
-		cam.apply_to(test);
-		glBindVertexArray(VAO);
-		if(renderTextureDebug)
-			glDrawArrays(GL_TRIANGLES, 0, 6);
-		glBindVertexArray(0);
-	glBindTexture(GL_TEXTURE_3D, 0);
+	//render the 3dtexture layerwise (DEBUG tool triggered with TAB in the application)
+	//test->Use();
+	//glUniform1i(glGetUniformLocation(test->Program, "layer"), input->scroll_count >= 0 ? input->scroll_count : 0);
+	//glActiveTexture(GL_TEXTURE0);
+	//glBindTexture(GL_TEXTURE_3D, tex_3d);
+	//	cam.apply_to(test);
+	//	glBindVertexArray(VAO);
+	//		if (renderTextureDebug)
+	//			glDrawArrays(GL_TRIANGLES, 0, 6);
+	//	glBindVertexArray(0);
+	//glBindTexture(GL_TEXTURE_3D, 0);
 
-	//Shader s("src/Shaders/vertexShader.vs","src/Shaders/simpleFragmentShader.fs","");
-	//cam.apply_to(&s);
-	//Cube c(&s ,glm::vec3(0, 0, 0), 1, 1, 1);
-	//c.draw();
 
+	//render the lightsources
+	//for (auto l : light)
+	//{
+	//	cam.model_translation(l->getPosition());
+	//	cam.apply_to(l->getShader());
+	//	l->render();
+	//}
+
+	//GLfloat* img = new GLfloat[1024*1024*4]();
+	//glBindTexture(GL_TEXTURE_CUBE_MAP, dcm);
+	//for (int i = 0; i < 6; ++i)
+	//{
+	//	glGetTexImage(GL_TEXTURE_CUBE_MAP_POSITIVE_X+i, 0, GL_RGBA, GL_FLOAT, img);
+	//}
 
 	//render the geometry
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	renderGeometry->Use();
-	cam.apply_to(renderGeometry);
-	for (int i = 0; i < 8; ++i)
+	for (auto s : shape)
 	{
-		glBindVertexArray(polygonVAO[i]);
-			glDrawArrays(GL_TRIANGLES, 0, 177147);
-		glBindVertexArray(0);
-	}
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		cam.model(s->getPosition(), s->rotation_angle, s->rotation_axis);
+		cam.apply_to(s->shader);
+		light[0]->apply_to(s->shader);
+		glActiveTexture(GL_TEXTURE0);
+		if(s->texture) s->texture->use();
 
+		glActiveTexture(GL_TEXTURE1);
+		if(s->normalMap) s->normalMap->use();
+
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, dcm);
+		s->render();
+	}
+
+	//delete[] img;
 
 	/*---------------------UPDATE PARTICLES---------------------------*/
 	glBindVertexArray(particle_vao);

@@ -86,14 +86,14 @@ void Kochanek_Bartels_Scene::render(GLfloat deltaTime)
 
 	cam.model(cP, 45, glm::vec3(1.f, 0.f, 1.f), glm::vec3(0.5f, 0.5f, 0.5f));
 	cam.apply_to(shader[1]);
-	currentPosition->draw();
+	currentPosition->render();
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	//render some shapes to butify the scene
 	for (unsigned i = 1; i < shape.size(); i++) {
 		cam.model(shape[i]->getPosition());
 		cam.apply_to(shader[1]);
-		shape[i]->draw();
+		shape[i]->render();
 	}
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -101,7 +101,7 @@ void Kochanek_Bartels_Scene::render(GLfloat deltaTime)
 	for (auto c : checkpoints) {
 		cam.model(c);
 		cam.apply_to(shader[0]);
-		shape[0]->draw();
+		shape[0]->render();
 	}
 }
 

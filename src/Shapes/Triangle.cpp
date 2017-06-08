@@ -35,7 +35,7 @@ Triangle::~Triangle()
 //	draw();
 //}
 
-void Triangle::draw()
+void Triangle::render()
 {
 	glBindVertexArray(VAO);
 		glBindBuffer(GL_ARRAY_BUFFER, VBO);

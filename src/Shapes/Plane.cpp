@@ -62,7 +62,7 @@ Plane::Plane(glm::vec3 pos_glo, GLfloat width, GLfloat height, GLfloat depth, gl
 //	*/draw();
 //}
 
-void Plane::draw()
+void Plane::render()
 {
 	glBindVertexArray(VAO);
 		glBindBuffer(GL_ARRAY_BUFFER, VBO);

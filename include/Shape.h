@@ -30,7 +30,7 @@ public:
 	}
 	inline glm::vec3 getPosition() const { return position_global; }
 	inline glm::vec3 getPositionLocal() const { return position_local; }
-	virtual void draw() = 0;
+	virtual void render() = 0;
 	virtual ~Shape() {
 		//if (shader)delete shader; NOT SHAPES RESPONSIBLITY!!!!
 		//if (texture)delete texture; NOT SHAPES RESPONSIBILITY!!!!

@@ -121,7 +121,7 @@ Cube::Cube(Shader* s, glm::vec3 pos_glo, GLfloat width, GLfloat height, GLfloat 
 		glm::vec3(-width/2, height/2, -depth/2), glm::vec3(width/2, height/2, -depth/2), glm::vec3(-width/2, -height/2, -depth/2), glm::vec3(width/2, -height/2, -depth/2),
 			width, height, depth) {}
 
-void Cube::draw()
+void Cube::render()
 {
 	glBindVertexArray(VAO);
 		glDrawArrays(GL_TRIANGLES, 0, 36);

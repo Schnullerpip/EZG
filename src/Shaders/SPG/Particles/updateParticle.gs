@@ -18,7 +18,7 @@ float blehLife = 100;
 
 float fireSpeed = 0.1f;
 float smokeSpeed = 0.2;
-float blehSpeed = 0.01;
+float blehSpeed = 0.1;
 
 uniform vec3 random;
 uniform vec4 wind;
@@ -103,7 +103,7 @@ void main(){
 		//keep emitter
 
 		//create 10 particles per emitter
-		for(int i = 0; i < 100; ++i){
+		for(int i = 0; i < 40; ++i){
 			EmitVertex();
 			typeFeedback = 0;
 			lifeFeedback = 0;

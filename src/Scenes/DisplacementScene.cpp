@@ -65,7 +65,7 @@ void DisplacementScene::render(GLfloat deltaTime)
 
 	cam.model(shape[0]->getPosition());
 	cam.apply_to(shape[0]->shader);
-	shape[0]->draw();
+	shape[0]->render();
 
 	glActiveTexture(GL_TEXTURE0);
 	texture[3]->use();
@@ -76,7 +76,7 @@ void DisplacementScene::render(GLfloat deltaTime)
 
 	cam.model(shape[1]->getPosition());
 	cam.apply_to(shape[1]->shader);
-	shape[1]->draw();
+	shape[1]->render();
 
 	console->update(deltaTime);
 

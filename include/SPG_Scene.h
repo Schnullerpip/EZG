@@ -4,12 +4,35 @@
 #include "KD_Tree.h"
 #include <random>
 
-const int particle_num = 10000;
+const int particle_num = 30000;
 const int particle_elements = 3 * 2; //x,y,z, type, life
 
 struct marching_geo : public Shape
 {
-	void draw() override {}
+	GLuint polygonVAO[20];
+	GLuint polygonVBO[20];
+	GLuint *vaoVertexCount;
+	GLuint numBuffers;
+
+	explicit marching_geo(GLuint numVAOs)
+	{
+		numBuffers = numVAOs;
+		vaoVertexCount = new GLuint[numBuffers];
+		glGenVertexArrays(numBuffers, &polygonVAO[0]);
+		glGenBuffers(numBuffers, &polygonVBO[0]);
+		VAO = polygonVAO[0];
+	}
+	void render() override {
+		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		shader->Use();
+		for (int i = 0; i < numBuffers; ++i)
+		{
+			glBindVertexArray(polygonVAO[i]);
+				glDrawArrays(GL_TRIANGLES, 0, vaoVertexCount[i]);
+			glBindVertexArray(0);
+		}
+		//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	}
 
 	void addVertices(GLfloat* begin, GLfloat* end)
 	{
@@ -44,11 +67,14 @@ class SPG_Scene : public Scene
 		-.5f, .5f, 0,	0.f, 1.f,
 	};
 
-	GLuint VAO, VBO, textureVertexArray, textureVertexBuffer, polygonVAO[8], polygonVBO[8];
+	GLuint VAO, VBO, textureVertexArray, textureVertexBuffer;// , polygonVAO[20], polygonVBO[20];
 
 	//Marcing Cubes Specific
 	GLchar** createGeometryFeedbackVaryings;
 	GLuint tex_3d, texFrameBuffer, lutEdges;
+	const GLuint maxBufferLength = 95/*width*/ * 95/*depth*/ * 255 * 3 * 15;
+	const GLuint maxNumBuffers = 8;
+	const GLuint singleBufferLength = maxBufferLength / maxNumBuffers;
 
 	//particles specific
 	const size_t INPUT = 0, FEEDBACK_P = 1, FEEDBACK_T = 2, FEEDBACK_L = 3;
