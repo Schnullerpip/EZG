@@ -5,7 +5,7 @@ in GS_OUT {
 	flat int layer;
 }gs_in;
 
-uniform vec2 pillars[3];
+vec2 pillars[3];
 
 out vec4 color;
 

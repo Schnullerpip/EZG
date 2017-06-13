@@ -1,7 +1,7 @@
 #version 440 core
 
 layout (points) in;
-layout (points, max_vertices = 1000) out;
+layout (points, max_vertices = 256) out;
 
 layout (xfb_buffer = 0) out vec3 positionFeedback;
 layout (xfb_buffer = 1) out float typeFeedback;

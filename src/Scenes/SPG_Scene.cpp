@@ -187,9 +187,6 @@ SPG_Scene::SPG_Scene(Input_Handler* ih, EventFeedback* ef):input(ih)
 	glViewport(0, 0, 96, 96);
 	glBindFramebuffer(GL_FRAMEBUFFER, texFrameBuffer); //bind to that framebuffer
 		densityShader->Use();
-		glUniform2fv(glGetUniformLocation(densityShader->Program, "pillars[0]"), 2, glm::value_ptr(pillar[0]));
-		glUniform2fv(glGetUniformLocation(densityShader->Program, "pillars[1]"), 2, glm::value_ptr(pillar[1]));
-		glUniform2fv(glGetUniformLocation(densityShader->Program, "pillars[2]"), 2, glm::value_ptr(pillar[2]));
 
 		glBindVertexArray(VAO);
 				glBindTexture(GL_TEXTURE_3D, tex_3d); //use the density texture
