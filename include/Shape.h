@@ -25,6 +25,7 @@ public:
 	Shader* shader = nullptr;
 	Texture* texture = nullptr;
 	Texture* normalMap = nullptr;
+	size_t elements_per_vertex = 14;
 	Shape() {
 		glGenBuffers(1, &VBO);
 	}

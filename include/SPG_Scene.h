@@ -22,6 +22,7 @@ struct marching_geo : public Shape
 		glGenVertexArrays(numBuffers, &polygonVAO[0]);
 		glGenBuffers(numBuffers, &polygonVBO[0]);
 		VAO = polygonVAO[0];
+		elements_per_vertex = 3;
 	}
 	void render() override {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);

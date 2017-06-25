@@ -97,9 +97,9 @@ KD_Tree::KD_Tree(unsigned dimension, std::vector<Shape*> shapes, size_t complexi
 	{
 		GLfloat* triangle_start = &(*s->getVertices())[0];
 		//for each shape's vertices
-		for (int i = 0; i < s->getVertices()->size(); i+=offset*3)
+		for (int i = 0; i < s->getVertices()->size(); i+=s->elements_per_vertex*3)
 		{
-			triangles.push_back(new TriangleContainer(triangle_start+i, s, offset));
+			triangles.push_back(new TriangleContainer(triangle_start+i, s, s->elements_per_vertex));
 		}
 	}
 	//build the KD-Tree

@@ -69,6 +69,9 @@ SPG_Scene::SPG_Scene(Input_Handler* ih, EventFeedback* ef):input(ih)
 	Cube *floor = new Cube(lightAffectedShader, glm::vec3(0, -10, 0), 200, 1, 200);
 	Cube *o1 = new Cube(lightAffectedShader, glm::vec3(0, 10, 20), 1, 1, 10);
 	Cube *o2 = new Cube(lightAffectedShader, glm::vec3(-5, 5, -5), 3, 1, 3);
+	floor->name = "floor";
+	o1->name = "long box";
+	o2->name = "box";
 
 	floor->texture = texture[2];
 	o1->texture = texture[2];
@@ -300,9 +303,6 @@ SPG_Scene::SPG_Scene(Input_Handler* ih, EventFeedback* ef):input(ih)
 	geometry->shader = renderGeometry;
 	shape.push_back(geometry);
 
-	console->out("initializing kd tree");
-	//kdt = new KD_Tree(3, shape, 32);
-	console->out("initializing kd tree - DONE");
 	/*----------------create geometry and read it from transform feedback buffer-----------*/
 
 
@@ -332,6 +332,7 @@ SPG_Scene::SPG_Scene(Input_Handler* ih, EventFeedback* ef):input(ih)
 	glUniform1f(glGetUniformLocation(displacementShader->Program, "numLayersRefinement"), 40.f);
 
 	displaced_cube = new Cube(displacementShader, glm::vec3(-10, 30, 10), 1, 1, 1);
+	displaced_cube->name = "displaced cube";
 	shape.push_back(displaced_cube);
 	displaced_cube->texture = texture[4];
 	displaced_cube->normalMap = texture[5];
@@ -339,6 +340,10 @@ SPG_Scene::SPG_Scene(Input_Handler* ih, EventFeedback* ef):input(ih)
 	console->registerCommand(&toggleParallax, "TOGGLE", "Parallax occlusion");
 	console->registerCommand(&adjustNumLayers, "STEP", "adjusting Step");
 	console->registerCommand(&adjustRefinement, "REFINEMENT", "adjusting Refinement Step");
+
+	console->out("initializing kd tree");
+	kdt = new KD_Tree(3, shape, 60, 3);
+	console->out("initializing kd tree - DONE");
 }
 
 
@@ -394,8 +399,7 @@ void SPG_Scene::render(GLfloat deltaTime)
 		s->render();
 	}
 
-	//delete[] img;
-
+	console->update(deltaTime);
 	/*---------------------UPDATE PARTICLES---------------------------*/
 	glBindVertexArray(particle_vao);
 		glEnable(GL_RASTERIZER_DISCARD);//so no fs will be appended to vs->gs->..
@@ -412,7 +416,7 @@ void SPG_Scene::render(GLfloat deltaTime)
 			GLint randLoc = glGetUniformLocation(updateParticle->Program, "random");
 			glUniform3f(randLoc, rands.x, rands.y, rands.z);
 
-			//wind vector that should influence the smoke - 4th foat is intensity
+			//wind vector that should influence the smoke - 4th float is intensity
 			glm::vec4 wind(wind_direction.x, wind_direction.y, wind_direction.z, wind_intensity);
 			glUniform4f(glGetUniformLocation(updateParticle->Program, "wind"), wind.x, wind.y, wind.z, wind.w);
 
@@ -435,7 +439,6 @@ void SPG_Scene::render(GLfloat deltaTime)
 		glBufferData(GL_ARRAY_BUFFER, sizeof(feedback), feedback, GL_STATIC_DRAW);
 		glFlush();
 
-		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 			cam.apply_to(renderParticle);
@@ -451,7 +454,6 @@ void SPG_Scene::render(GLfloat deltaTime)
 
 			glDrawArrays(GL_POINTS, 0, particle_num*particle_elements);
 
-		glDisable(GL_BLEND);
 		glFlush();
 
 
@@ -461,7 +463,7 @@ void SPG_Scene::render(GLfloat deltaTime)
 	/*----------------------------------------------------------------*/
 
 
-	//displacement
+	////displacement
 	cam.apply_to(displacementShader);
 	light[0]->apply_to(displacementShader);
 
@@ -475,8 +477,6 @@ void SPG_Scene::render(GLfloat deltaTime)
 	cam.model(displaced_cube->getPosition());
 	cam.apply_to(displacementShader);
 	displaced_cube->render();
-
-	console->update(deltaTime);
 }
 
 
@@ -530,26 +530,28 @@ void SPG_Scene::update(GLfloat deltaTime, EventFeedback* feedback)
 	{
 
 		glm::vec3 collision_point;
-		Node* n;
+		Node* n = nullptr;
 		kdt->fireRay(&cam.pos, &cam.front, &collision_point, &n);
 
-		for (size_t i = 0; i < particle_num*particle_elements; ++i)
-		{
-			particle_vertices[i]	= 0;//x,y,z
-			particle_vertices[++i]	= 0;
-			particle_vertices[++i]	= 0;
+		if (n) {
+			for (size_t i = 0; i < particle_num*particle_elements; ++i)
+			{
+				particle_vertices[i] = 0;//x,y,z
+				particle_vertices[++i] = 0;
+				particle_vertices[++i] = 0;
 
-			particle_vertices[++i]	= 4;//type
-			particle_vertices[++i]	= 0;//lifetime
+				particle_vertices[++i] = 4;//type
+				particle_vertices[++i] = 0;//lifetime
+			}
+			//set initial particle emitter
+			particle_vertices[0] = collision_point.x;
+			particle_vertices[1] = collision_point.y;
+			particle_vertices[2] = collision_point.z;
+			particle_vertices[3] = 3;
+			particle_vertices[4] = 666;
+			glBindBuffer(GL_ARRAY_BUFFER, particle_vbo[INPUT]);
+			glBufferData(GL_ARRAY_BUFFER, sizeof(particle_vertices), particle_vertices, GL_STATIC_DRAW);
 		}
-		//test DELETE THIS!!!!!
-		particle_vertices[0] = collision_point.x;
-		particle_vertices[1] = collision_point.y;
-		particle_vertices[2] = collision_point.z;
-		particle_vertices[3] = 3;
-		particle_vertices[4] = 666;
-		glBindBuffer(GL_ARRAY_BUFFER, particle_vbo[INPUT]);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(particle_vertices), particle_vertices, GL_STATIC_DRAW);
 
 	}
 
