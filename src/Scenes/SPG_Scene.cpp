@@ -66,7 +66,7 @@ SPG_Scene::SPG_Scene(Input_Handler* ih, EventFeedback* ef):input(ih)
 	texture.push_back(new Texture("images/crate_NRM.png"));
 
 	//primitives
-	Cube *floor = new Cube(lightAffectedShader, glm::vec3(0, 0, 0), 200, 1, 200);
+	Cube *floor = new Cube(lightAffectedShader, glm::vec3(0, -10, 0), 200, 1, 200);
 	Cube *o1 = new Cube(lightAffectedShader, glm::vec3(0, 10, 20), 1, 1, 10);
 	Cube *o2 = new Cube(lightAffectedShader, glm::vec3(-5, 5, -5), 3, 1, 3);
 
@@ -96,7 +96,7 @@ SPG_Scene::SPG_Scene(Input_Handler* ih, EventFeedback* ef):input(ih)
 			particle_vertices[++i]	= 0;//lifetime
 		}
 
-		//test DELETE THIS!!!!!
+		//set initial particle
 		particle_vertices[0] = 0;
 		particle_vertices[1] = 0;
 		particle_vertices[2] = 0;
@@ -142,9 +142,9 @@ SPG_Scene::SPG_Scene(Input_Handler* ih, EventFeedback* ef):input(ih)
 		glBindBuffer(GL_ARRAY_BUFFER, VBO);
 			glBufferData(GL_ARRAY_BUFFER, sizeof(points), points, GL_STATIC_DRAW);
 			glEnableVertexAttribArray(0);
-			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GL_FLOAT), 0);
+			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), 0);
 			glEnableVertexAttribArray(1);
-			glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GL_FLOAT), (GLvoid*)(3 * sizeof GL_FLOAT));
+			glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 
@@ -164,7 +164,7 @@ SPG_Scene::SPG_Scene(Input_Handler* ih, EventFeedback* ef):input(ih)
 			glBindBuffer(GL_ARRAY_BUFFER, textureVertexBuffer);
 			glBufferData(GL_ARRAY_BUFFER, sizeof textureVertices, textureVertices, GL_STATIC_DRAW);
 			glEnableVertexAttribArray(0);
-			glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0 * sizeof GL_FLOAT, (GLvoid*)0);
+			glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0 * sizeof(GLfloat), (GLvoid*)0);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 
@@ -197,7 +197,8 @@ SPG_Scene::SPG_Scene(Input_Handler* ih, EventFeedback* ef):input(ih)
 					glReadBuffer(GL_NONE);
 					glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 					glClear(GL_COLOR_BUFFER_BIT);
-					glDrawArraysInstanced(GL_TRIANGLES, 0, 6, 256); //render call!!! 
+					//render call that fills the density map!!! 
+					glDrawArraysInstanced(GL_TRIANGLES, 0, 6, 256);
 				glBindTexture(GL_TEXTURE_3D, 0);
 		glBindVertexArray(0);
 		glUseProgram(0);
@@ -243,6 +244,8 @@ SPG_Scene::SPG_Scene(Input_Handler* ih, EventFeedback* ef):input(ih)
 	glEndTransformFeedback();
 
 	glEndQuery(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN);
+	glFlush();
+
 	GLuint primitives;
 	glGetQueryObjectuiv(query, GL_QUERY_RESULT, &primitives);
 	printf("%u primitives written!\n\n", primitives);
@@ -298,9 +301,44 @@ SPG_Scene::SPG_Scene(Input_Handler* ih, EventFeedback* ef):input(ih)
 	shape.push_back(geometry);
 
 	console->out("initializing kd tree");
-	kdt = new KD_Tree(3, shape, 32);
+	//kdt = new KD_Tree(3, shape, 32);
 	console->out("initializing kd tree - DONE");
 	/*----------------create geometry and read it from transform feedback buffer-----------*/
+
+
+
+
+
+	//displacment
+	//shaders
+	//[4]
+	displaced_texture = new Texture("images/bricksDiffuse.jpg");
+	texture.push_back(displaced_texture);
+	displaced_NM = new Texture("images/bricksNormal.jpg");
+	texture.push_back(displaced_NM);
+	displaced_HM = new Texture("images/bricksDisplace.jpg");
+	texture.push_back(displaced_HM);
+
+	displacementShader = new Shader("src/Shaders/Displacement/displacementVertex.vs",
+		"src/Shaders/Displacement/displacementFragment.fs", "");
+	shader.push_back(displacementShader);
+	displacementShader->Use();
+	glUniform1i(glGetUniformLocation(displacementShader->Program, "diffuseMap"), 0);
+    glUniform1i(glGetUniformLocation(displacementShader->Program, "normalMap"), 1);
+    glUniform1i(glGetUniformLocation(displacementShader->Program, "depthMap"), 2);
+	glUniform1f(glGetUniformLocation(displacementShader->Program, "height_scale"), 0.1f);
+	glUniform1i(glGetUniformLocation(displacementShader->Program, "parallax"), true);
+	glUniform1f(glGetUniformLocation(displacementShader->Program, "numLayers"), 80.f);
+	glUniform1f(glGetUniformLocation(displacementShader->Program, "numLayersRefinement"), 40.f);
+
+	displaced_cube = new Cube(displacementShader, glm::vec3(-10, 30, 10), 1, 1, 1);
+	shape.push_back(displaced_cube);
+	displaced_cube->texture = texture[4];
+	displaced_cube->normalMap = texture[5];
+
+	console->registerCommand(&toggleParallax, "TOGGLE", "Parallax occlusion");
+	console->registerCommand(&adjustNumLayers, "STEP", "adjusting Step");
+	console->registerCommand(&adjustRefinement, "REFINEMENT", "adjusting Refinement Step");
 }
 
 
@@ -316,36 +354,28 @@ void SPG_Scene::render(GLfloat deltaTime)
 	cam.projection_p(800,600); 
 
 	//render shadows
-	//light[0]->renderShadow(shape, window);
 	GLuint dcm = light[0]->renderShadowVSM(shape, window);
 
 	//render the 3dtexture layerwise (DEBUG tool triggered with TAB in the application)
-	//test->Use();
-	//glUniform1i(glGetUniformLocation(test->Program, "layer"), input->scroll_count >= 0 ? input->scroll_count : 0);
-	//glActiveTexture(GL_TEXTURE0);
-	//glBindTexture(GL_TEXTURE_3D, tex_3d);
-	//	cam.apply_to(test);
-	//	glBindVertexArray(VAO);
-	//		if (renderTextureDebug)
-	//			glDrawArrays(GL_TRIANGLES, 0, 6);
-	//	glBindVertexArray(0);
-	//glBindTexture(GL_TEXTURE_3D, 0);
+	test->Use();
+	glUniform1i(glGetUniformLocation(test->Program, "layer"), input->scroll_count >= 0 ? input->scroll_count : 0);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_3D, tex_3d);
+		cam.apply_to(test);
+		glBindVertexArray(VAO);
+			if (renderTextureDebug)
+				glDrawArrays(GL_TRIANGLES, 0, 6);
+		glBindVertexArray(0);
+	glBindTexture(GL_TEXTURE_3D, 0);
 
 
 	//render the lightsources
-	//for (auto l : light)
-	//{
-	//	cam.model_translation(l->getPosition());
-	//	cam.apply_to(l->getShader());
-	//	l->render();
-	//}
-
-	//GLfloat* img = new GLfloat[1024*1024*4]();
-	//glBindTexture(GL_TEXTURE_CUBE_MAP, dcm);
-	//for (int i = 0; i < 6; ++i)
-	//{
-	//	glGetTexImage(GL_TEXTURE_CUBE_MAP_POSITIVE_X+i, 0, GL_RGBA, GL_FLOAT, img);
-	//}
+	for (auto l : light)
+	{
+		cam.model_translation(l->getPosition());
+		cam.apply_to(l->getShader());
+		l->render();
+	}
 
 	//render the geometry
 	for (auto s : shape)
@@ -422,12 +452,31 @@ void SPG_Scene::render(GLfloat deltaTime)
 			glDrawArrays(GL_POINTS, 0, particle_num*particle_elements);
 
 		glDisable(GL_BLEND);
+		glFlush();
 
 
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindBuffer(GL_TRANSFORM_FEEDBACK_BUFFER, 0);
 	glBindVertexArray(0);
 	/*----------------------------------------------------------------*/
+
+
+	//displacement
+	cam.apply_to(displacementShader);
+	light[0]->apply_to(displacementShader);
+
+	glActiveTexture(GL_TEXTURE0);
+	displaced_texture->use();
+	glActiveTexture(GL_TEXTURE1);
+	displaced_NM->use();
+	glActiveTexture(GL_TEXTURE2);
+	displaced_HM->use();
+
+	cam.model(displaced_cube->getPosition());
+	cam.apply_to(displacementShader);
+	displaced_cube->render();
+
+	console->update(deltaTime);
 }
 
 
@@ -523,4 +572,53 @@ void SPG_Scene::update(GLfloat deltaTime, EventFeedback* feedback)
 		lastScrollCount = input->scroll_count;
 		std::cout << "layer: " << input->scroll_count << std::endl;
 	}
+	
+	//displacement options
+	if (adjustNumLayers)
+	{
+		static GLfloat lastNumLayers = numLayers;
+
+		numLayers += input->getScrollDelta();
+		if (numLayers < 1) { numLayers = 1; }
+
+		displacementShader->Use();
+		glUniform1f(glGetUniformLocation(displacementShader->Program, "numLayers"), numLayers);
+
+		if (lastNumLayers != numLayers)
+		{
+			std::stringstream ss;
+			ss << "Adjusted NUM layers to: ";
+			ss << numLayers;
+			console->out(ss.str());
+		}
+		lastNumLayers = numLayers;
+	}
+	if (adjustRefinement)
+	{
+		static GLfloat lastNumLayers = numLayers;
+
+		numLayersRefinement += input->getScrollDelta();
+		if (numLayersRefinement < 1) { numLayersRefinement = 1; }
+
+		displacementShader->Use();
+		glUniform1f(glGetUniformLocation(displacementShader->Program, "numLayersRefinement"), numLayersRefinement);
+
+		if (lastNumLayers != numLayersRefinement)
+		{
+			std::stringstream ss;
+			ss << "Adjusted Refinement Step to: ";
+			ss << numLayersRefinement;
+			console->out(ss.str());
+		}
+		lastNumLayers = numLayersRefinement;
+	}
+
+	if (toggleParallax)
+	{
+		toggleParallax = false;
+		parallax_mapping = !parallax_mapping;
+		displacementShader->Use();
+		glUniform1i(glGetUniformLocation(displacementShader->Program, "parallax"), parallax_mapping);
+	}
+
 }

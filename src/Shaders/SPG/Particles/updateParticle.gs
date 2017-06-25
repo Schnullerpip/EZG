@@ -47,8 +47,6 @@ void main(){
 	-------------------*/
 
 
-
-
 	/*-------------------PARTICLES-----------------------*/
 
 	vec2 s = vec2(seed[0] * random.x, seed[0] * random.y);

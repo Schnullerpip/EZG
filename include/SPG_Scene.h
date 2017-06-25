@@ -3,9 +3,10 @@
 #include "OnScreenConsole.h"
 #include "KD_Tree.h"
 #include <random>
+#include "Cube.h"
 
 const int particle_num = 30000;
-const int particle_elements = 3 * 2; //x,y,z, type, life
+const int particle_elements = 3 + 2; //x,y,z, type, life
 
 struct marching_geo : public Shape
 {
@@ -38,6 +39,7 @@ struct marching_geo : public Shape
 	{
 		vertices.insert(vertices.end(), begin, end);
 	}
+
 };
 
 class SPG_Scene : public Scene
@@ -73,7 +75,7 @@ class SPG_Scene : public Scene
 	GLchar** createGeometryFeedbackVaryings;
 	GLuint tex_3d, texFrameBuffer, lutEdges;
 	const GLuint maxBufferLength = 95/*width*/ * 95/*depth*/ * 255 * 3 * 15;
-	const GLuint maxNumBuffers = 8;
+	const GLuint maxNumBuffers = 5;
 	const GLuint singleBufferLength = maxBufferLength / maxNumBuffers;
 
 	//particles specific
@@ -82,6 +84,16 @@ class SPG_Scene : public Scene
 	GLfloat particle_vertices[particle_num*particle_elements];
 	std::mt19937 generator;
 	std::uniform_real_distribution<float> probability;
+
+	//displacement
+	Cube* displaced_cube;
+	Shader* displacementShader;
+	Texture* displaced_texture, *displaced_NM, *displaced_HM;
+	bool toggleParallax = false, adjustNumLayers = false, adjustRefinement = false;
+	GLfloat numLayers = 80.f;
+	GLfloat numLayersRefinement = 40.f;
+	GLboolean parallax_mapping = true;
+
 public:
 	void transferParticleBuffers() {}
 	void setEmitter(GLfloat x, GLfloat y, GLfloat z) {}
